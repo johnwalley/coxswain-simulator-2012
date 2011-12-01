@@ -5,4 +5,4 @@ You will need a recent web browser with support for WebGL. Chrome, Firefox and S
 
 This is my attempt at learning Javascript and WebGL at the same time!
 
-<iframe width="560" height="315" src="http://www.youtube.com/embed/3Siv_VyzRfs" frameborder="0" allowfullscreen></iframe>
+<a href="http://www.youtube.com/embed/3Siv_VyzRfs"><img src="http://i4.ytimg.com/vi/3Siv_VyzRfs/default.jpg" alt="YouTube video"></a>
