@@ -17,24 +17,26 @@ var clock = new THREE.Clock();
 init();
 animate();
 
+/**
+* Set up everything
+*/
 function init() {
-
   scene = new THREE.Scene();
-  scene.fog = new THREE.Fog( 0x58c2c0, 1, 200 );
+  //scene.fog = new THREE.Fog( 0x58c2c0, 1, 200 );
 
-  camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.25, 1000 );
+  camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.5, 8000 );
   // TODO: Transition to z axis being up
   //camera.up = THREE.Vector3(0, 1, 0);
-  camera.position.x = 20;
+  camera.position.x = 72;
   camera.position.y = 8;
-  camera.position.z = 12;
+  camera.position.z = 105;
+  
   controls = new THREE.FirstPersonControls( camera );
 
-  controls.movementSpeed = 10;
-  controls.lookSpeed = 0.1;
+  controls.movementSpeed = 100;
+  controls.lookSpeed = 0.05;
   controls.lookVertical = false;
-  
-  
+ 
   scene.add( camera );
     
   ambientLight = new THREE.AmbientLight( 0xffffff );
@@ -99,40 +101,60 @@ function init() {
   landscapeMesh.position.y = -10;
   landscapeMesh.position.z = -500;
   //scene.add(landscapeMesh);    
-  
-  // Track  
-  riverLine = new RiverLine( [new THREE.Vector3(-50,0,-50), 
-                              new THREE.Vector3(0,0,0),
-                              new THREE.Vector3(33,0,20),
-                              new THREE.Vector3(66,0,20),                              
-                              new THREE.Vector3(100,0,0),
-                              new THREE.Vector3(150,0,-50),
-                              new THREE.Vector3(200,0,20),                              
-                              new THREE.Vector3(220,0,80),
-                              new THREE.Vector3(240,0,140)] );
-               
+
+// River Cam!  
+var splinePts = [new THREE.Vector3(-141.18,0,-217.65),
+  new THREE.Vector3(0,0,0),
+  new THREE.Vector3(141.18,0,217.65),
+  new THREE.Vector3(382.35,0,452.94),
+  new THREE.Vector3(923.53,0,552.94),
+  new THREE.Vector3(1135.3,0,588.24),
+  new THREE.Vector3(1200,0,688.24),
+  new THREE.Vector3(1300,0,811.76),
+  new THREE.Vector3(1505.9,0,788.24),
+  new THREE.Vector3(1705.9,0,758.82),
+  new THREE.Vector3(1841.2,0,964.71),
+  new THREE.Vector3(1976.5,0,1347.1),
+  new THREE.Vector3(2017.6,0,1588.2),
+  new THREE.Vector3(2123.5,0,1741.2),
+  new THREE.Vector3(2294.1,0,2229.4),
+  new THREE.Vector3(2529.4,0,2288.2),
+  new THREE.Vector3(2647.1,0,2394.1),
+  new THREE.Vector3(2817.6,0,2458.8),
+  new THREE.Vector3(2982.4,0,2623.5),
+  new THREE.Vector3(2982.4,0,2794.1),
+  new THREE.Vector3(3082.4,0,2970.6),
+  new THREE.Vector3(3041.2,0,3241.2),
+  new THREE.Vector3(2847.1,0,3452.9),
+  new THREE.Vector3(2758.8,0,3594.1),
+  new THREE.Vector3(2747.1,0,3747.1)];
+    
+             
+  riverLine = new RiverLine(splinePts); 
+   
+                              
   geometry0 = new THREE.Geometry();
   
   var landscapeLeftPts = [];
   var landscapeRightPts = [];
   
-  for (var num = 0; num < riverLine.roadVertices.length; num++) {
-    geometry0.vertices.push(new THREE.Vertex(riverLine.roadVertices[num].pos));
+  for (var num = 0; num < riverLine.riverVertices.length; num++) {
+    geometry0.vertices.push(new THREE.Vertex(riverLine.riverVertices[num].pos));
     if (!(num % 5)) {
-      landscapeLeftPts.push( new THREE.Vector2( riverLine.roadVertices[num].pos.x, riverLine.roadVertices[num].pos.z ) );  
+      landscapeLeftPts.push( new THREE.Vector2( riverLine.riverVertices[num].pos.x, riverLine.riverVertices[num].pos.z ) );  
     }
     if (!((num+1) % 5)) {
-      landscapeRightPts.push( new THREE.Vector2( riverLine.roadVertices[num].pos.x, riverLine.roadVertices[num].pos.z ) );        
+      landscapeRightPts.push( new THREE.Vector2( riverLine.riverVertices[num].pos.x, riverLine.riverVertices[num].pos.z ) );        
     }      
   }  
   
-  landscapeLeftPts.push( new THREE.Vector2(300, -100) );
-  landscapeLeftPts.push( new THREE.Vector2(0, -100) );  
-  landscapeLeftPts.push( new THREE.Vector2(riverLine.roadVertices[0].pos.x, riverLine.roadVertices[0].pos.z ) ); 
+  landscapeLeftPts.push( new THREE.Vector2(3500, 4000) );
+  landscapeLeftPts.push( new THREE.Vector2(3500, -100) );  
+  landscapeLeftPts.push( new THREE.Vector2(riverLine.riverVertices[5].pos.x, riverLine.riverVertices[5].pos.z ) ); 
   
-  landscapeRightPts.push( new THREE.Vector2(300, 200) );
-  landscapeRightPts.push( new THREE.Vector2(0, 200) );  
-  landscapeRightPts.push( new THREE.Vector2(riverLine.roadVertices[4].pos.x, riverLine.roadVertices[4].pos.z ) );   
+  landscapeRightPts.push( new THREE.Vector2(-100, 4000) ); 
+  landscapeRightPts.push( new THREE.Vector2(-100, 0) ); 
+  landscapeRightPts.push( new THREE.Vector2(riverLine.riverVertices[5].pos.x, riverLine.riverVertices[5].pos.z ) );   
   
   var landscapeLeftShape = new THREE.Shape( landscapeLeftPts );
   var landscapeRightShape = new THREE.Shape( landscapeRightPts );
@@ -154,23 +176,23 @@ function init() {
   
   var uvs;
   var offset = 0;
-  while ( offset < riverLine.roadIndices.length ) {
+  while ( offset < riverLine.riverIndices.length ) {
 
     face = new THREE.Face3();
 
     uvs = new Array(3);
     
-    uvs[0] = new THREE.UV(riverLine.roadVertices[riverLine.roadIndices[offset]].uv.x, 
-    riverLine.roadVertices[riverLine.roadIndices[offset]].uv.y);
-    face.a = riverLine.roadIndices[ offset++ ];
+    uvs[0] = new THREE.UV(riverLine.riverVertices[riverLine.riverIndices[offset]].uv.x, 
+    riverLine.riverVertices[riverLine.riverIndices[offset]].uv.y);
+    face.a = riverLine.riverIndices[ offset++ ];
     
-    uvs[1] = new THREE.UV(riverLine.roadVertices[riverLine.roadIndices[offset]].uv.x, 
-    riverLine.roadVertices[riverLine.roadIndices[offset]].uv.y);    
-    face.b = riverLine.roadIndices[ offset++ ];
+    uvs[1] = new THREE.UV(riverLine.riverVertices[riverLine.riverIndices[offset]].uv.x, 
+    riverLine.riverVertices[riverLine.riverIndices[offset]].uv.y);    
+    face.b = riverLine.riverIndices[ offset++ ];
     
-    uvs[2] = new THREE.UV(riverLine.roadVertices[riverLine.roadIndices[offset]].uv.x, 
-    riverLine.roadVertices[riverLine.roadIndices[offset]].uv.y);    
-    face.c = riverLine.roadIndices[ offset++ ];  
+    uvs[2] = new THREE.UV(riverLine.riverVertices[riverLine.riverIndices[offset]].uv.x, 
+    riverLine.riverVertices[riverLine.riverIndices[offset]].uv.y);    
+    face.c = riverLine.riverIndices[ offset++ ];  
     
     geometry0.faces.push(face);
     geometry0.faceVertexUvs[0].push(uvs);    
@@ -182,9 +204,9 @@ function init() {
   
   material0 = new THREE.MeshBasicMaterial( { map: texture, wireframe: false } );  
   
-  var trackMesh = new THREE.Mesh( geometry0, material0 );
-  trackMesh.position.set(0, 5, 0);
-  scene.add(trackMesh);  
+  var riverMesh = new THREE.Mesh( geometry0, material0 );
+  riverMesh.position.set(0, 5, 0);
+  scene.add(riverMesh);  
   
   // Skybox
 	cameraCube = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 100000 );
@@ -221,15 +243,15 @@ function init() {
   
   
   // Wireframe
-  geometry2 = new THREE.CubeGeometry( 240, 10, 130 );  
+  geometry2 = new THREE.CubeGeometry( 1000, 10, 250 );  
   
   material = new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: true } );
   
 
   mesh = new THREE.Mesh( geometry2, material );
-  mesh.position.x = 120;
+  mesh.position.x = 500;
   mesh.position.y = 5;
-  mesh.position.z = 15;
+  mesh.position.z = 125;
   scene.add( mesh ); 
 
   renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -246,12 +268,9 @@ function animate() {
 
   webkitRequestAnimationFrame( animate );
   render();
-
 }
 
 function render() {
-
- 
   controls.update( clock.getDelta() );
 
   cubeTarget.x = -Math.cos(camera.rotation.y);
@@ -262,6 +281,5 @@ function render() {
   
 	renderer.render( sceneCube, cameraCube );  
   renderer.render( scene, camera );
-
 }
 

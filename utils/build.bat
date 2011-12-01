@@ -1,0 +1,1 @@
+java -jar D:\Development\Web\github\coxswain-simulator-2012\utils\compiler\compiler.jar --language_in=ECMASCRIPT5 --js=../src/TangentVertex.js --js=../src/RiverVertex.js --js=../src/RiverLine.js --js=../src/Landscape.js --js=../src/cox-sim.js --js_output_file=../build/cox-sim.js

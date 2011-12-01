@@ -5,12 +5,12 @@
  function RiverLine(inputPoints) {
   this.numberOfIterationsPer100Meters = 20;
   this.numberOfUpSmoothValues = 10;
-  this.roadTextureStrechFactor = 0.125;
-  this.roadWidthScale = 13.25;
+  this.riverTextureStrechFactor = 0.125;
+  this.riverWidthScale = 13.25;
   
   this.points = []; // Array of RiverVertex
-  this.roadVertices = [];
-  this.roadIndices = [];
+  this.riverVertices = [];
+  this.riverIndices = [];
   
   this.load(inputPoints);
   
@@ -27,9 +27,9 @@ RiverLine.prototype.generateUTextureCoordinates = function () {
     // Assign u texture coordinate
     this.points[num].uv = new THREE.Vector2(currentRiverUTexValue, 0);
 
-    // Uniform calculation of the texture coordinates for the roadway,
+    // Uniform calculation of the texture coordinates for the riverway,
     // so it doesn't matter if there is a gap of 2 or 200 m
-    currentRiverUTexValue += this.roadTextureStrechFactor *
+    currentRiverUTexValue += this.riverTextureStrechFactor *
       (new THREE.Vector3().sub(this.points[(num + 1) % this.points.length].pos,
       this.points[num % this.points.length].pos).length());
   }
@@ -114,17 +114,17 @@ RiverLine.prototype.load = function (inputPoints) {
  * Generate vertices from spline control points
  */
 RiverLine.prototype.generateVerticesAndObjects = function () {
-  // Current texture coordinate for the roadway (in direction of movement)
+  // Current texture coordinate for the riverway (in direction of movement)
   for (var num = 0; num < this.points.length; num++)
   {
     // Get vertices with help of the properties in the RiverVertex class.
-    // For the road itself we only need vertices for the left and right
+    // For the river itself we only need vertices for the left and right
     // side, which are vertex number 0 and 1.
-    this.roadVertices[num * 5 + 0] = this.points[num].rightTangentVertex;
-    this.roadVertices[num * 5 + 1] = this.points[num].middleRightTangentVertex;
-    this.roadVertices[num * 5 + 2] = this.points[num].middleTangentVertex;
-    this.roadVertices[num * 5 + 3] = this.points[num].middleLeftTangentVertex;
-    this.roadVertices[num * 5 + 4] = this.points[num].leftTangentVertex;
+    this.riverVertices[num * 5 + 0] = this.points[num].rightTangentVertex;
+    this.riverVertices[num * 5 + 1] = this.points[num].middleRightTangentVertex;
+    this.riverVertices[num * 5 + 2] = this.points[num].middleTangentVertex;
+    this.riverVertices[num * 5 + 3] = this.points[num].middleLeftTangentVertex;
+    this.riverVertices[num * 5 + 4] = this.points[num].leftTangentVertex;
   }
   
   var indices = [];
@@ -158,5 +158,5 @@ RiverLine.prototype.generateVerticesAndObjects = function () {
       vertexIndex += 5;
   }  
   
-  this.roadIndices = indices;
+  this.riverIndices = indices;
 }

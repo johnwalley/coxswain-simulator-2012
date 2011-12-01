@@ -8,7 +8,7 @@
   this.up = up || THREE.Vector3(0,1,0);
   this.dir = dir || THREE.Vector3(0,0,1);
   this.uv = uv || THREE.Vector2(0,0); 
-  this.riverWidth = 16.0;
+  this.riverWidth = 64.0;
 }
 
 RiverVertex.prototype = {
