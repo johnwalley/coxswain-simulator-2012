@@ -176,7 +176,7 @@ function init() {
     geometry0.faceVertexUvs[0].push(uvs);    
   }
  
-  texture = THREE.ImageUtils.loadTexture( "water.jpg" );
+  texture = THREE.ImageUtils.loadTexture( "textures/water.jpg" );
   texture.wrapS = 0;
   texture.wrapT = 0;
   
