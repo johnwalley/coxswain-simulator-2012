@@ -7,9 +7,17 @@
  * @constructor
  */
 function CoxSimManager() {
-  //this.player = new Player();
+  // Call the parent constructor
+  BaseGame.call(this);
+  this.player = new Player();
   //this.landscape = null;
 }
+
+// Inherit BaseGame
+CoxSimManager.prototype = new BaseGame();
+
+// Correct the constructor pointer because it points to CoxSimManager
+CoxSimManager.prototype.constructor = CoxSimManager;
 
 CoxSimManager.prototype.run = function () {
   this.init();
@@ -57,7 +65,7 @@ CoxSimManager.prototype.init = function () {
   scene.add( ambientLight );
 
   directionalLight = new THREE.DirectionalLight( 0xffff44, 0.8 );
-  directionalLight.position.set( -1, 1, -0.5 ).normalize();
+  directionalLight.position.set( this.lightDirection ).normalize();
   scene.add( directionalLight );  
   
   // Landscape

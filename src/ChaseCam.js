@@ -10,11 +10,11 @@
  */
 function ChaseCam() {
   // Call the parent constructor
-  BasePlayer.call(this);
+  BoatPhysics.call(this);
 }
 
-// Inherit BasePlayer
-ChaseCam.prototype = new BasePlayer();
+// Inherit BoatPhysics
+ChaseCam.prototype = new BoatPhysics();
 
 // Correct the constructor pointer because it points to ChaseCam
-ChaseCam.prototype.constructor = BasePlayer;
+ChaseCam.prototype.constructor = ChaseCam;
