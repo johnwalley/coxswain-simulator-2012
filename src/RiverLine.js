@@ -2,18 +2,18 @@
  * River geometry and utility methods to build it
  * @constructor
  */
- function RiverLine(inputPoints) {
+function RiverLine(inputPoints) {
   this.numberOfIterationsPer100Meters = 20;
   this.numberOfUpSmoothValues = 10;
   this.riverTextureStrechFactor = 0.125;
   this.riverWidthScale = 13.25;
-  
+
   this.points = []; // Array of RiverVertex
   this.riverVertices = [];
   this.riverIndices = [];
-  
+
   this.load(inputPoints);
-  
+
   this.generateVerticesAndObjects();
 }
 
