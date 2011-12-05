@@ -1,4 +1,8 @@
 /**
+ * @author John Walley / http://www.walley.org.uk/
+ */
+ 
+/**
  * Used to build river geometry
  * @constructor
  */

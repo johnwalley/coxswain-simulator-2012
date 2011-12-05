@@ -24,8 +24,18 @@ test("module with setup", function() {
 	ok(true);
 });
 
+module("RiverVertex");
 
-test("module with setup, expect in test call", 2, function() {
-	ok(true);
+test("Minimal constructor", 2, function() {
+  var rv = new RiverVertex(new THREE.Vector3(0, 0, 0));
+  ok(rv.riverWidth !== undefined, "riverWidth defined");
+  ok(rv.riverWidth > 0, "riverWidth positive");
+});
+
+module("Player");
+
+test("Minimal constructor", 1, function() {
+  var player = new Player();
+  ok(player.update(), "Handle no input gracefully");
 });
 

@@ -12,9 +12,9 @@ var BaseGame = (function () {
     width: window.innerWidth,
     height: window.innerWidth,
     
-    lightDirection: new THREE.Vector3(0, 1, 1),
+    lightDirection: new THREE.Vector3(0.2, 1, 1),
     
-    elapsedTimeThisFrameInMs: 0.001,
+    elapsedTimeThisFrameInMs: 100,
     totalTimeMs: 0,
     lastFrameTotalTimeMs: 0,
     startTimeThisSecond: 0,

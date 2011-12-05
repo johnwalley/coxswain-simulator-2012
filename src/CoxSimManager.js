@@ -10,7 +10,7 @@ function CoxSimManager() {
   // Call the parent constructor
   this.input = new Input();  
   var x = new THREE.Vector3(0, 0, 0)
-  this.player = new Player(x, this.input);
+  this.player = new Player(this.input);
   //this.landscape = null;
 }
 
@@ -70,7 +70,7 @@ CoxSimManager.prototype.init = function () {
 
   controls.movementSpeed = 100;
   controls.lookSpeed = 0.05;
-  controls.lookVertical = true;
+  controls.lookVertical = false;
  
   scene.add(camera);
     

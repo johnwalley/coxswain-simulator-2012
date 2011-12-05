@@ -1,4 +1,8 @@
 /**
+ * @author John Walley / http://www.walley.org.uk/
+ */
+ 
+/**
  * Base player helper class, holds all the current game values:
  * Game time, game over, level number, victory.
  * More stuff that has impact to the CarController or ChaseCamera classes

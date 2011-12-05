@@ -11,12 +11,12 @@
  * This way we can easily access everything from the Player class.
  * @constructor
  */
-function BoatPhysics() {
+function BoatPhysics(input) {
   // Call the parent constructor
   BasePlayer.call(this);
   
   // Controls
-  //this.input = input;
+  this.input = input;
   
   this.defaultBoatMass = 1000;
   this.gravity = 9.81;
@@ -66,7 +66,7 @@ function BoatPhysics() {
   this.lastAccelerationResult = 0;
   
   //this.boatPos = boatPosition;
-  this.boatPosition = new THREE.Vector3(0,0,1);
+  this.boatPos = new THREE.Vector3(0,0,1);
   this.boatDir = new THREE.Vector3(0,0,1);
   this.boatUp = new THREE.Vector3(0,1,0);
   
@@ -81,11 +81,11 @@ BoatPhysics.prototype = new BasePlayer();
 // Correct the constructor pointer because it points to BoatPhysics
 BoatPhysics.prototype.constructor = BoatPhysics;
 
-/*BoatPhysics.prototype = {
+BoatPhysics.prototype = {
   get lookAtPos() {
-    return new THREE.Vector3(new THREE.Vector3().add(this.boatPos, new THREE.Vector3().copy(this.boatUp).multiplyScalar(this.carHeight)));
+    return new THREE.Vector3().add(this.boatPos, new THREE.Vector3().copy(this.boatUp).multiplyScalar(this.boatHeight));
   }
-}*/
+}
 
 BoatPhysics.prototype.reset = function () {
   this.speed = 0;
@@ -101,7 +101,7 @@ BoatPhysics.prototype.update = function () {
     this.boatOnWater = false;
   }
   
-  var moveFactor = BaseGame.moveFactorSpeed;
+  var moveFactor = BaseGame.elapsedTimeThisFrameInMs / 1000.0;
   
   if (moveFactor < 0.001) {
     moveFactor = 0.001;
@@ -115,9 +115,55 @@ BoatPhysics.prototype.update = function () {
   // First handle rotations (reduce last value)
   this.rotationChange *= 0.95;
   
-  if (this.input) {
+  if (this.input.moveLeft) {
+    this.rotationChange += effectiveSenstivity * this.maxRotationPerSec * moveFactor / 2.5;
+  } else if (this.input.moveRight){
+    this.rotationChange -= effectiveSenstivity * this.maxRotationPerSec * moveFactor / 2.5;    
+  } else {
+    this.rotationChange = 0;
   }
   
+  var maxRot = this.maxRotationPerSec * moveFactor * 1.25;
+  
+  // Handle car rotation after collision
+  if (this.rotateCarAfterCollision != 0)
+  {
+    if (this.rotateCarAfterCollision > maxRot)
+    {
+      this.rotationChange += maxRot;
+      this.rotateCarAfterCollision -= maxRot;
+    }
+    else if (this.rotateCarAfterCollision < -maxRot)
+    {
+      this.rotationChange -= maxRot;
+      this.rotateCarAfterCollision += maxRot;
+    }
+    else
+    {
+      this.rotationChange += this.rotateCarAfterCollision;
+      this.rotateCarAfterCollision = 0;
+    }
+  }
+  else
+  {
+    // If we are staying or moving very slowly, limit rotation!
+    if (this.speed < 10.0) {
+      this.rotationChange *= 0.67 + 0.33 * this.speed / 10.0;
+    } else {
+      this.rotationChange *= 1.0 + (this.speed - 10) / 100.0;
+    }
+  }    
+  
+  // Limit rotation change to MaxRotationPerSec * 1.5 (usually for mouse)
+  if (this.rotationChange > maxRot) {
+    this.rotationChange = maxRot;
+  }
+  if (this.rotationChange < -maxRot) {
+    this.rotationChange = -maxRot;  
+  }
+  
+  this.boatPos.addSelf(new THREE.Vector3(0, 0, this.rotationChange));
+    
 }
 
 
