@@ -15,6 +15,7 @@
   this.startGameZoomTimeMilliseconds = 5000;
   this.zoomInTime = this.startGameZoomTimeMilliseconds;
   this.startGameZoomedInTime = 3000;
+  this.firstFrame = true;
  }
  
  BasePlayer.prototype = {
@@ -27,12 +28,23 @@
 }
 
 BasePlayer.prototype.update = function () {
+  if (this.firstFrame) {
+    this.firstFrame = false;
+    return
+  }
+
   if (this.zoomInTime > 0) {
     var lastZoomInTime = this.zoomInTime;
-    this.zoomInTime -= BaseGame.ElapsedTimeThisFrameInMilliseconds;
-    if (this.zoomInTime < 2000 && ((lastZoomInTime + 1000) / 1000) != (int)((this.zoomInTime + 1000) / 1000))
+    this.zoomInTime -= BaseGame.elapsedTimeThisFrameInMs;
+    if (this.zoomInTime < 2000 && ((lastZoomInTime + 1000) / 1000) != ((this.zoomInTime + 1000) / 1000))
     {
       // Handle start
     }    
   }
+  
+  if (!this.canControlBoat) {
+    return
+  }
+  
+  this.currentGameTimeMilliseconds += BaseGame.elapsedTimeThisFrameInMs;  
 }

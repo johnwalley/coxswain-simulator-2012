@@ -8,34 +8,47 @@
  */
 function CoxSimManager() {
   // Call the parent constructor
-  BaseGame.call(this);
-  this.player = new Player();
+  this.input = new Input();  
+  var x = new THREE.Vector3(0, 0, 0)
+  this.player = new Player(x, this.input);
   //this.landscape = null;
 }
 
-// Inherit BaseGame
-CoxSimManager.prototype = new BaseGame();
-
-// Correct the constructor pointer because it points to CoxSimManager
-CoxSimManager.prototype.constructor = CoxSimManager;
 
 CoxSimManager.prototype.run = function () {
   this.init();
-  this.animate();
+  // Game loop
+  this.step();
 }
 
-CoxSimManager.prototype.animate = function () {
-  webkitRequestAnimationFrame(this.animate.bind(this));
-  this.render();
-}  
+CoxSimManager.prototype.step = function () {
+  this.update();
+  this.draw();
+  webkitRequestAnimationFrame(this.step.bind(this));
+}
 
-CoxSimManager.prototype.render = function () {
+CoxSimManager.prototype.update = function () {
+  // this.input.update();
+  // this.sound.update();
+  this.player.update();
+  
   this.controls.update( this.clock.getDelta() );
 
   this.cubeTarget.x = -Math.cos(this.camera.rotation.y);
   this.cubeTarget.y = 0;
   this.cubeTarget.z = -Math.sin(this.camera.rotation.y);
+}
 
+/**
+ * Draw
+ * @param gameTime Game time
+ */
+CoxSimManager.prototype.draw = function (gameTime) {
+  this.render();
+  // this.uiRenderer.render();
+}
+
+CoxSimManager.prototype.render = function () {
   this.cameraCube.lookAt(this.cubeTarget);  
   
 	this.renderer.render(this.sceneCube, this.cameraCube);  
@@ -57,16 +70,16 @@ CoxSimManager.prototype.init = function () {
 
   controls.movementSpeed = 100;
   controls.lookSpeed = 0.05;
-  controls.lookVertical = false;
+  controls.lookVertical = true;
  
-  scene.add( camera );
+  scene.add(camera);
     
-  ambientLight = new THREE.AmbientLight( 0xffffff );
-  scene.add( ambientLight );
+  ambientLight = new THREE.AmbientLight(0xffffff);
+  scene.add(ambientLight);
 
-  directionalLight = new THREE.DirectionalLight( 0xffff44, 0.8 );
-  directionalLight.position.set( this.lightDirection ).normalize();
-  scene.add( directionalLight );  
+  directionalLight = new THREE.DirectionalLight(0xffff44);
+  directionalLight.position = BaseGame.lightDirection.normalize();
+  scene.add(directionalLight);  
   
   // Landscape
   landscape = new Landscape();
@@ -218,7 +231,7 @@ CoxSimManager.prototype.init = function () {
   texture.wrapS = 0;
   texture.wrapT = 0;
   
-  material0 = new THREE.MeshBasicMaterial( { map: texture, wireframe: false } );  
+  material0 = new THREE.MeshBasicMaterial( { map: texture, wireframe: false, transparent: true, opacity: 0.9 } );  
   
   var riverMesh = new THREE.Mesh( geometry0, material0 );
   riverMesh.position.set(0, 5, 0);

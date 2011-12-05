@@ -8,13 +8,19 @@
  * its all automatic!
  * @constructor
  */
-function ChaseCam() {
+function ChaseCamera() {
   // Call the parent constructor
   BoatPhysics.call(this);
+  
+  this.cameraPos = new THREE.Vector3().add(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 10, 10));
 }
 
 // Inherit BoatPhysics
-ChaseCam.prototype = new BoatPhysics();
+ChaseCamera.prototype = new BoatPhysics();
 
-// Correct the constructor pointer because it points to ChaseCam
-ChaseCam.prototype.constructor = ChaseCam;
+// Correct the constructor pointer because it points to ChaseCamera
+ChaseCamera.prototype.constructor = ChaseCamera;
+
+ChaseCamera.prototype.update = function () {
+  BoatPhysics.prototype.update.call(this);  
+}
