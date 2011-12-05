@@ -12,3 +12,5 @@ You can always watch a video.
 <a href="http://www.youtube.com/watch?v=3Siv_VyzRfs"><img src="http://i4.ytimg.com/vi/3Siv_VyzRfs/default.jpg" alt="YouTube video"></a>
 
 This is my attempt at learning Javascript and WebGL at the same time!
+
+Based on <a href="http://exdream.com/XnaRacingGame/">XNA Racing Game</a> a complete XNA Game Studio Express game.

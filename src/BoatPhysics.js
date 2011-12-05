@@ -1,4 +1,8 @@
 /**
+ * @author John Walley / http://www.walley.org.uk/
+ */
+ 
+ /**
  * Boat controller class for controlling the boat we cox.
  * This class is derived from the BasePlayer class, which stores all
  * important game values for us (game time, game over, etc.).
