@@ -37,6 +37,8 @@ CoxSimManager.prototype.update = function () {
   this.cubeTarget.x = -Math.cos(this.player.camera.rotation.y);
   this.cubeTarget.y = 0;
   this.cubeTarget.z = -Math.sin(this.player.camera.rotation.y);
+  
+  this.stats.update();
 }
 
 /**
@@ -56,6 +58,7 @@ CoxSimManager.prototype.render = function () {
 }
 
 CoxSimManager.prototype.init = function () {
+
   scene = new THREE.Scene();
   //scene.fog = new THREE.Fog( 0x58c2c0, 1, 200 );
 
@@ -284,6 +287,11 @@ CoxSimManager.prototype.init = function () {
   this.cameraCube = cameraCube;
   this.sceneCube = sceneCube;
   this.cubeTarget = cubeTarget;
+  
+  this.stats = new Stats();
+  this.stats.domElement.style.position = 'absolute';
+  this.stats.domElement.style.top = '0px';
+  container.appendChild( this.stats.domElement );
   
   this.clock = new THREE.Clock();
 }
