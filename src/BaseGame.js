@@ -14,7 +14,7 @@ var BaseGame = (function () {
     
     lightDirection: new THREE.Vector3(0.2, 1, 1),
     
-    elapsedTimeThisFrameInMs: 100,
+    elapsedTimeThisFrameInMs: 10,
     totalTimeMs: 0,
     lastFrameTotalTimeMs: 0,
     startTimeThisSecond: 0,

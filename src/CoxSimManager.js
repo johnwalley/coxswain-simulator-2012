@@ -7,10 +7,10 @@
  * @constructor
  */
 function CoxSimManager() {
-  // Call the parent constructor
-  this.input = new Input();  
-  var x = new THREE.Vector3(0, 0, 0)
-  this.player = new Player(this.input);
+  input = new Input();
+  camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.5, 8000 );
+  this.player = new Player(input, camera);
+  
   //this.landscape = null;
 }
 
@@ -24,7 +24,7 @@ CoxSimManager.prototype.run = function () {
 CoxSimManager.prototype.step = function () {
   this.update();
   this.draw();
-  webkitRequestAnimationFrame(this.step.bind(this));
+  requestAnimationFrame(this.step.bind(this));
 }
 
 CoxSimManager.prototype.update = function () {
@@ -32,11 +32,11 @@ CoxSimManager.prototype.update = function () {
   // this.sound.update();
   this.player.update();
   
-  this.controls.update( this.clock.getDelta() );
+  //this.controls.update( this.clock.getDelta() );
 
-  this.cubeTarget.x = -Math.cos(this.camera.rotation.y);
+  this.cubeTarget.x = -Math.cos(this.player.camera.rotation.y);
   this.cubeTarget.y = 0;
-  this.cubeTarget.z = -Math.sin(this.camera.rotation.y);
+  this.cubeTarget.z = -Math.sin(this.player.camera.rotation.y);
 }
 
 /**
@@ -52,27 +52,26 @@ CoxSimManager.prototype.render = function () {
   this.cameraCube.lookAt(this.cubeTarget);  
   
 	this.renderer.render(this.sceneCube, this.cameraCube);  
-  this.renderer.render(this.scene, this.camera);
+  this.renderer.render(this.scene, this.player.camera);
 }
 
 CoxSimManager.prototype.init = function () {
   scene = new THREE.Scene();
   //scene.fog = new THREE.Fog( 0x58c2c0, 1, 200 );
 
-  camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.5, 8000 );
   // TODO: Transition to z axis being up
   //camera.up = THREE.Vector3(0, 1, 0);
-  camera.position.x = 72;
-  camera.position.y = 8;
-  camera.position.z = 105;
+  this.player.camera.position.x = 72;
+  this.player.camera.position.y = 8;
+  this.player.camera.position.z = 105;
   
-  controls = new THREE.FirstPersonControls( camera );
+  controls = new THREE.FirstPersonControls( this.player.camera );
 
   controls.movementSpeed = 100;
   controls.lookSpeed = 0.05;
   controls.lookVertical = false;
  
-  scene.add(camera);
+  scene.add(this.player.camera);
     
   ambientLight = new THREE.AmbientLight(0xffffff);
   scene.add(ambientLight);
@@ -279,7 +278,6 @@ CoxSimManager.prototype.init = function () {
   container.appendChild( renderer.domElement );
   
   this.scene = scene;
-  this.camera = camera;
   this.renderer = renderer;
   this.controls = controls;
   
