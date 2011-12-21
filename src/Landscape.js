@@ -2,7 +2,26 @@
  * Landscape geometry and utility methods to build it
  * @constructor
  */
- function Landscape() {
+ function Landscape(level) {
+ 
+  this.river = null;
+ 
+  this.reloadLevel(level);
+ 
+ }
+ 
+ Landscape.prototype.reloadLevel = function (level) {
+    this.level = level;
+    
+    if (this.river == null) {
+      this.river = new River("River" + this.level);
+    } else {
+      this.river.reload("River" + this.level);
+    }
+ }
+ 
+ function lala() {
+ 
   this.gridWidth = 256;
   this.gridHeight = 256;
   

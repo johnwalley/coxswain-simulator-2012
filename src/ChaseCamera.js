@@ -45,7 +45,9 @@ ChaseCamera.prototype.setCameraPosition = function (cameraPos) {
 
 ChaseCamera.prototype.updateView = function () {
 
-  this.cameraLookVector.set(-Math.cos(this.boatDir), 0, -Math.sin(this.boatDir));
+  this.cameraLookVector = this.boatDir;
+  
+  this.cameraLookVector.multiplyScalar(-1);
 
   this.cameraPos = new THREE.Vector3().add(this.lookAtPos, this.cameraLookVector);
   

@@ -21,15 +21,15 @@ function BoatPhysics(input) {
   this.boatMass = 1000;
   this.gravity = 9.81;
   
-  this.defaultMaxSpeed = 50 * this.mphToMeterPerSec;
-  this.maxPossibleSpeed = 50 * this.mphToMeterPerSec;
+  this.defaultMaxSpeed = 100 * this.mphToMeterPerSec;
+  this.maxPossibleSpeed = 100 * this.mphToMeterPerSec;
   
-  this.defaultMaxAccelerationPerSec = 0.5;
+  this.defaultMaxAccelerationPerSec = 0.02;
   this.maxAcceleration = 5.75;
   this.minAcceleration = -3.25;
   
   this.boatFrictionInWater = 17;
-  this.airFrictionPerSpeed = 0.66;
+  this.airFrictionPerSpeed = 66.6;
   
   this.maxAirFriction = this.airFrictionPerSpeed * 200;
   
@@ -65,7 +65,7 @@ function BoatPhysics(input) {
   
   //this.boatPos = boatPosition;
   this.boatPos = new THREE.Vector3(72, 8, 125);
-  this.boatDir = 0.0;
+  this.boatAngle = 0.0;
   this.boatUp = new THREE.Vector3(0, 1, 0);
   
   this.virtualRotationAmount = 0.0;
@@ -82,6 +82,9 @@ BoatPhysics.prototype.constructor = BoatPhysics;
 BoatPhysics.prototype = {
   get lookAtPos() {
     return new THREE.Vector3().add(this.boatPos, new THREE.Vector3().copy(this.boatUp).multiplyScalar(this.boatHeight));
+  },
+  get boatDir() {
+    return new THREE.Vector3(Math.cos(this.boatAngle), 0, Math.sin(this.boatAngle));
   }
 }
 
@@ -145,7 +148,7 @@ BoatPhysics.prototype.update = function () {
   else
   {
     // If we are staying or moving very slowly, limit rotation!
-    if (this.speed < 10.0) {
+    if (this.speed < 5.0) {
       this.rotationChange *= 0.67 + 0.33 * this.speed / 10.0;
     } else {
       this.rotationChange *= 1.0 + (this.speed - 10) / 100.0;
@@ -160,7 +163,7 @@ BoatPhysics.prototype.update = function () {
     this.rotationChange = -maxRot;  
   }
   
-  this.boatDir -= this.rotationChange;
+  this.boatAngle -= this.rotationChange;
   
   // Handle speed
   var newAccelerationForce = 0.0;
@@ -184,7 +187,7 @@ BoatPhysics.prototype.update = function () {
     
   // Add acceleration force to total boat force, but use the current boatDir!
   if (this.isBoatOnWater) {
-    this.boatForce.addSelf(new THREE.Vector3(Math.cos(this.boatDir), 0, Math.sin(this.boatDir)).multiplyScalar(newAccelerationForce * moveFactor));
+    this.boatForce.addSelf(this.boatDir.multiplyScalar(newAccelerationForce * moveFactor));
   }
   
   var oldSpeed = this.speed;
@@ -192,13 +195,22 @@ BoatPhysics.prototype.update = function () {
   var speedChangeVector = new THREE.Vector3().copy(this.boatForce).divideScalar(this.boatMass);
   
   if (this.isBoatOnWater && speedChangeVector.length() > 0) {
-    var speedApplyFactor = speedChangeVector.normalize().dot(new THREE.Vector3(Math.cos(this.boatDir), 0, Math.sin(this.boatDir)));
+    var speedApplyFactor = speedChangeVector.normalize().dot(this.boatDir);
     if (speedApplyFactor > 1) {
       speedApplyFactor = 1;
     }
     this.speed += speedChangeVector.length() * speedApplyFactor;
   }
   
+  // Apply friction
+  var airFriction = this.airFrictionPerSpeed * Math.abs(this.speed);
+  if (airFriction > this.maxAirFriction) {
+    airFriction = this.maxAirFriction;
+  }
+  
+  this.boatForce.multiplyScalar(1 - (0.275 * 0.02125 * 0.2 * airFriction));
+  this.speed *= 1.0 - (0.01 * 0.1 * 0.02125 * airFriction);
+                
   // Limit speed
   if (this.speed > this.maxSpeed) {
     this.speed = this.maxSpeed;
@@ -209,8 +221,32 @@ BoatPhysics.prototype.update = function () {
   
   
   // Apply speed and calculate new boat position.
-  this.boatPos.addSelf(new THREE.Vector3(Math.cos(this.boatDir), 0, Math.sin(this.boatDir)).multiplyScalar(this.speed * moveFactor * 1.75));  
+  this.boatPos.addSelf(this.boatDir.multiplyScalar(this.speed * moveFactor * 1.75));  
+  
+  
+  var oldRiverSegmentNumber = this.riverSegmentNumber;
+  
+  // Where are we on the river?
+  //game.landscape.updateBoatRiverPosition(this.boatPos, this.riverSegmentNumber, this.riverSegmentPercent);
+  
+  
+  //riverMatrix = 
+  
+  // Set up bank boundings for the physics calculation
+  //this.setBanks(trackPos - trackMatrix.Right *
+  
+  // Finally check for collisions with the banks
+  //this.checkForCollisions();
     
 }
 
+BoatPhysics.prototype.checkForCollisions = function() {
+  //var bankLeftVector = new THREE.Vector3
+}
 
+BoatPhysics.prototype.setBanks = function(bankLeft, nextBankLeft, bankRight, nextBankRight) {
+  this.bankLeft = bankLeft;
+  this.nextBankLeft = nextBankLeft;
+  this.bankRight = bankRight;
+  this.nextBankRight = nextBankRight;
+}
