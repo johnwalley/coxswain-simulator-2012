@@ -6,10 +6,5 @@
  * Main entry point for our game
  */
  
-try {
-  var game = new CoxSimManager();
-} catch (e){
-
-}
-
+var game = new Client();
 game.run();

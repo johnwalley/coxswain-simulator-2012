@@ -11,9 +11,9 @@
  * you should add a multiplayer class and have all player instances there.
  * @constructor
  */
-function Player(input, camera) {
+function Player(input) {
   // Call the parent constructor
-  ChaseCamera.call(this, input, camera);
+  ChaseCamera.call(this, input);
 }
 
 // Inherit ChaseCamera

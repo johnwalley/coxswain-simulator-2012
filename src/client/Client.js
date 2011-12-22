@@ -7,14 +7,25 @@
  * @constructor
  */
 function Client() {
-  input = new Input();
-  camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.5, 8000 );
-  this.player = new Player(input, camera);
+  this.input = new Input();
+  this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.5, 8000 );
+  this.player = new Player(this.input);
   
   this.level = 'cam';
-  
-  
   this.landscape = null;
+  
+  // Test connection to server
+  try {
+    this.socket = io.connect('http://localhost:27960');
+    
+    this.socket.on('motd', function (data) {
+    console.log(data.motd);
+    });    
+  } catch (e){
+    console.log('Unable to connect to server');
+  }
+  
+
 }
 
 
@@ -35,11 +46,14 @@ Client.prototype.update = function () {
   // this.sound.update();
   this.player.update();
   
+  this.camera.position = this.player.cameraPos;
+  this.camera.lookAt(this.player.lookAtPos);
+  
   //this.controls.update( this.clock.getDelta() );
 
-  this.cubeTarget.x = -Math.cos(this.player.camera.rotation.y);
+  this.cubeTarget.x = -Math.cos(this.camera.rotation.y);
   this.cubeTarget.y = 0;
-  this.cubeTarget.z = -Math.sin(this.player.camera.rotation.y);
+  this.cubeTarget.z = -Math.sin(this.camera.rotation.y);
   
   this.stats.update();
 }
@@ -57,7 +71,7 @@ Client.prototype.render = function () {
   this.cameraCube.lookAt(this.cubeTarget);  
   
 	this.renderer.render(this.sceneCube, this.cameraCube);  
-  this.renderer.render(this.scene, this.player.camera);
+  this.renderer.render(this.scene, this.camera);
 }
 
 /**
@@ -71,17 +85,15 @@ Client.prototype.init = function () {
 
   // TODO: Transition to z axis being up
   //camera.up = THREE.Vector3(0, 1, 0);
-  this.player.camera.position.x = 72;
-  this.player.camera.position.y = 8;
-  this.player.camera.position.z = 105;
+  this.camera.position.set(72, 8, 105);
   
-  controls = new THREE.FirstPersonControls( this.player.camera );
+  controls = new THREE.FirstPersonControls( this.camera );
 
   controls.movementSpeed = 100;
   controls.lookSpeed = 0.05;
   controls.lookVertical = false;
  
-  scene.add(this.player.camera);
+  scene.add(this.camera);
     
   ambientLight = new THREE.AmbientLight(0xffffff);
   scene.add(ambientLight);

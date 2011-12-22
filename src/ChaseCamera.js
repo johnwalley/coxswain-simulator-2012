@@ -12,11 +12,9 @@
  * its all automatic!
  * @constructor
  */
-function ChaseCamera(input, camera) {
+function ChaseCamera(input) {
   // Call the parent constructor
   BoatPhysics.call(this, input);
-  
-  this.camera = camera;
   
   this.cameraPos;
   
@@ -51,7 +49,4 @@ ChaseCamera.prototype.updateView = function () {
 
   this.cameraPos = new THREE.Vector3().add(this.lookAtPos, this.cameraLookVector);
   
-  this.camera.position = this.cameraPos;
-  
-  this.camera.lookAt(this.lookAtPos);
 }
