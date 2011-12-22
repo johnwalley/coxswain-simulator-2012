@@ -17,7 +17,7 @@ Based on <a href="http://exdream.com/XnaRacingGame/">XNA Racing Game</a> a compl
 
 ## References
 
-* [Fix Your Timestep]http://gafferongames.com/game-physics/fix-your-timestep/
-* [Networked Physics]http://gafferongames.com/game-physics/networked-physics/
-* [Multiplayer HTML5 Osmos]https://github.com/borismus/osmus
+* [Fix Your Timestep](http://gafferongames.com/game-physics/fix-your-timestep/)
+* [Networked Physics](http://gafferongames.com/game-physics/networked-physics/)
+* [Multiplayer HTML5 Osmos](https://github.com/borismus/osmus)
 
