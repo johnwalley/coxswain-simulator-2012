@@ -21,17 +21,17 @@ function BoatPhysics(input) {
   this.boatMass = 1000;
   this.gravity = 9.81;
   
-  this.defaultMaxSpeed = 1000 * this.mphToMeterPerSec;
-  this.maxPossibleSpeed = 1000 * this.mphToMeterPerSec;
+  this.defaultMaxSpeed = 200 * this.mphToMeterPerSec;
+  this.maxPossibleSpeed = 200 * this.mphToMeterPerSec;
   
   this.defaultMaxAccelerationPerSec = 0.2;
   this.maxAcceleration = 5.75;
   this.minAcceleration = -3.25;
   
   this.boatFrictionInWater = 17;
-  this.airFrictionPerSpeed = 66.6;
+  this.airFrictionPerSpeed = 6.6;
   
-  this.maxAirFriction = this.airFrictionPerSpeed * 200;
+  this.maxAirFriction = this.airFrictionPerSpeed * 20;
   
   this.brakeSlowdown = 1;
   
@@ -64,7 +64,7 @@ function BoatPhysics(input) {
   this.lastAccelerationResult = 0;
   
   //this.boatPos = boatPosition;
-  this.boatPos = new THREE.Vector3(72, 8, 125);
+  this.boatPos = new THREE.Vector3(100, 5, 140);
   this.boatAngle = 0.0;
   this.boatUp = new THREE.Vector3(0, 1, 0);
   
@@ -218,11 +218,7 @@ BoatPhysics.prototype.update = function (delta) {
   if (this.speed < -this.maxSpeed) {
     this.speed = -this.maxSpeed;  
   }
-  
-  
-  // Apply speed and calculate new boat position.
-  this.boatPos.addSelf(this.boatDir.multiplyScalar(this.speed * moveFactor * 1.75));  
-  
+   
   
   var oldRiverSegmentNumber = this.riverSegmentNumber;
   
@@ -234,23 +230,33 @@ BoatPhysics.prototype.update = function (delta) {
     
   var riverMatrix = game.landscape.getRiverPositionMatrix(this.riverSegmentNumber, this.riverSegmentPercent);
   
+  // TODO: riverPos is coming back as the righthand bank (it should be the middle of the river)
   var riverPos = riverMatrix.translation;
   
-  this.setBanks(new THREE.Vector3().sub(riverPos, riverMatrix.right),
-                new THREE.Vector3().sub(riverPos, riverMatrix.right).addSelf(riverMatrix.forward),
-                new THREE.Vector3().add(riverPos, riverMatrix.right),
-                new THREE.Vector3().add(riverPos, riverMatrix.right).addSelf(riverMatrix.forward));
-    
-  // Set up bank boundings for the physics calculation
-  //this.setBanks(trackPos - trackMatrix.Right *
+  var scaledRiverRight = new THREE.Vector3(riverMatrix.right.x, riverMatrix.right.y, riverMatrix.right.z);
+  scaledRiverRight.multiplyScalar(2*13.25);
+  
+  this.setBanks(new THREE.Vector3().copy(riverPos),
+                new THREE.Vector3().copy(riverPos).addSelf(riverMatrix.forward),
+                new THREE.Vector3().add(riverPos, scaledRiverRight),
+                new THREE.Vector3().add(riverPos, scaledRiverRight).addSelf(riverMatrix.forward));
   
   // Finally check for collisions with the banks
-  //this.checkForCollisions();
+  this.checkForCollisions();
+  
+  // Apply speed and calculate new boat position.
+  this.boatPos.addSelf(this.boatDir.multiplyScalar(this.speed * moveFactor * 1.75));    
     
 }
 
 BoatPhysics.prototype.checkForCollisions = function() {
-  //var bankLeftVector = new THREE.Vector3
+  var leftDist = distanceToLine(this.boatPos, this.bankRight, this.nextBankRight)-5;
+  var rightDist = distanceToLine(this.boatPos, this.bankLeft, this.nextBankLeft)-5;
+  
+  if ((leftDist < 1) || (rightDist < 1)) {
+    this.speed = -10*this.speed;
+  }
+  
 }
 
 BoatPhysics.prototype.setBanks = function(bankLeft, nextBankLeft, bankRight, nextBankRight) {
@@ -258,4 +264,15 @@ BoatPhysics.prototype.setBanks = function(bankLeft, nextBankLeft, bankRight, nex
   this.nextBankLeft = nextBankLeft;
   this.bankRight = bankRight;
   this.nextBankRight = nextBankRight;
+}
+
+function distanceToLine(p1, p2, p3) {
+  
+  var A = new THREE.Vector3().sub(p3, p2);
+  var B = new THREE.Vector3().sub(p2, p1);
+  var C = new THREE.Vector3().sub(p3, p2);
+  
+  var d = new THREE.Vector3().cross(A, B).length() / C.length();
+  
+  return d;
 }

@@ -22,8 +22,11 @@ function Client() {
   this.player = new Player(this.input); // TODO: Decouple input from physics - make event driven?
   this.landscape = new Landscape(this.level);
 
+  hostname = {localhost: 'localhost', ec2: 'ec2.walley.org.uk'};
+  port = 27960;
+  
   // Test connection to server
-  this.socket = io.connect('http://ec2.walley.org.uk:27960');
+  this.socket = io.connect(hostname[0] + ':' + port);
   
   this.socket.on('motd', function (data) {
     console.log(data.motd);
@@ -58,10 +61,10 @@ Client.prototype.update = function () {
   
   this.camera.position = this.player.cameraPos;
   this.camera.lookAt(this.player.lookAtPos);
-  
-  this.skyBox.target.x = -Math.cos(this.camera.rotation.y);
+
+  this.skyBox.target.x = -Math.cos(this.player.boatAngle);
   this.skyBox.target.y = 0;
-  this.skyBox.target.z = -Math.sin(this.camera.rotation.y);
+  this.skyBox.target.z = -Math.sin(this.player.boatAngle);
   
   this.stats.update();
 }
