@@ -23,7 +23,7 @@ function Client() {
   this.landscape = new Landscape(this.level);
 
   // Test connection to server
-  this.socket = io.connect('http://localhost:27960');
+  this.socket = io.connect('http://ec2.walley.org.uk:27960');
   
   this.socket.on('motd', function (data) {
     console.log(data.motd);

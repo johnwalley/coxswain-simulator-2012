@@ -1,11 +1,18 @@
 Coxswain Simulator 2012
 =======================
 
+Multiplayer internet racing game.
+
+## Features
+
+* Cross-browser 3D graphics using WebGL
+* Node.js server hosted on an Amazon Elastic Cloud Compute instance (this is very experimental at the moment and is turned off)
+
 Play it at <a href="http://www.walley.org.uk/cox-sim-2012/">http://www.walley.org.uk/cox-sim-2012/</a>.
 
 You will need a recent web browser with support for WebGL. Chrome, Firefox and Safari latest builds should be sufficient.
 
-You can always watch a video.
+If your luck is out then why not watch a video?
 
 <a href="http://www.youtube.com/watch?v=_G5Tbw_gorA"><img src="http://i4.ytimg.com/vi/_G5Tbw_gorA/default.jpg" alt="YouTube video"></a>
 
@@ -20,4 +27,5 @@ Based on <a href="http://exdream.com/XnaRacingGame/">XNA Racing Game</a> a compl
 * [Fix Your Timestep](http://gafferongames.com/game-physics/fix-your-timestep/)
 * [Networked Physics](http://gafferongames.com/game-physics/networked-physics/)
 * [Multiplayer HTML5 Osmos](https://github.com/borismus/osmus)
+* [EC2 web app template](https://github.com/rsms/ec2-webapp)
 
