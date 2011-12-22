@@ -95,14 +95,14 @@ BoatPhysics.prototype.reset = function () {
   this.riverSegmentPercent = 0;
 }
 
-BoatPhysics.prototype.update = function () {
-  BasePlayer.prototype.update.call(this);
+BoatPhysics.prototype.update = function (delta) {
+  BasePlayer.prototype.update.call(this, delta);
   
   if (this.zoomInTime > 0) {
     this.boatOnWater = false;
   }
   
-  var moveFactor = BaseGame.elapsedTimeThisFrameInMs / 1000.0;
+  var moveFactor = delta;
   
   if (moveFactor < 0.001) {
     moveFactor = 0.001;

@@ -31,7 +31,7 @@
   }
 }
 
-BasePlayer.prototype.update = function () {
+BasePlayer.prototype.update = function (delta) {
   if (this.firstFrame) {
     this.firstFrame = false;
     return
@@ -39,7 +39,7 @@ BasePlayer.prototype.update = function () {
 
   if (this.zoomInTime > 0) {
     var lastZoomInTime = this.zoomInTime;
-    this.zoomInTime -= BaseGame.elapsedTimeThisFrameInMs;
+    this.zoomInTime -= delta;
     if (this.zoomInTime < 2000 && ((lastZoomInTime + 1000) / 1000) != ((this.zoomInTime + 1000) / 1000))
     {
       // Handle start
@@ -50,5 +50,5 @@ BasePlayer.prototype.update = function () {
     return
   }
   
-  this.currentGameTimeMilliseconds += BaseGame.elapsedTimeThisFrameInMs;  
+  this.currentGameTimeMilliseconds += delta;  
 }

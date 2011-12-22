@@ -30,8 +30,8 @@ ChaseCamera.prototype = new BoatPhysics();
 // Correct the constructor pointer because it points to ChaseCamera
 ChaseCamera.prototype.constructor = ChaseCamera;
 
-ChaseCamera.prototype.update = function () {
-  BoatPhysics.prototype.update.call(this);
+ChaseCamera.prototype.update = function (delta) {
+  BoatPhysics.prototype.update.call(this, delta);
   
   this.updateView();
 }

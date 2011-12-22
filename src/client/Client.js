@@ -7,13 +7,21 @@
  * @constructor
  */
 function Client() {
+
+  // Client only properties, rendering, input, sound, etc.
   this.input = new Input();
   this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.5, 8000 );
-  this.player = new Player(this.input);
+  this.stats = new Stats();
+  
+  // Set up renderer
+  this.renderer = new THREE.WebGLRenderer( { antialias: true } );
   
   this.level = 'cam';
-  this.landscape = null;
-  
+
+  // Common properties, i.e. physics engine
+  this.player = new Player(this.input); // TODO: Decouple input from physics - make event driven?
+  this.landscape = new Landscape(this.level);
+
   // Test connection to server
   try {
     this.socket = io.connect('http://localhost:27960');
@@ -44,16 +52,14 @@ Client.prototype.step = function () {
 Client.prototype.update = function () {
   // this.input.update();
   // this.sound.update();
-  this.player.update();
+  this.player.update(this.clock.getDelta());
   
   this.camera.position = this.player.cameraPos;
   this.camera.lookAt(this.player.lookAtPos);
   
-  //this.controls.update( this.clock.getDelta() );
-
-  this.cubeTarget.x = -Math.cos(this.camera.rotation.y);
-  this.cubeTarget.y = 0;
-  this.cubeTarget.z = -Math.sin(this.camera.rotation.y);
+  this.skyBox.target.x = -Math.cos(this.camera.rotation.y);
+  this.skyBox.target.y = 0;
+  this.skyBox.target.z = -Math.sin(this.camera.rotation.y);
   
   this.stats.update();
 }
@@ -68,9 +74,8 @@ Client.prototype.draw = function (gameTime) {
 }
 
 Client.prototype.render = function () {
-  this.cameraCube.lookAt(this.cubeTarget);  
-  
-	this.renderer.render(this.sceneCube, this.cameraCube);  
+  this.skyBox.camera.lookAt(this.skyBox.target);  
+	this.renderer.render(this.skyBox.scene, this.skyBox.camera);  
   this.renderer.render(this.scene, this.camera);
 }
 
@@ -80,90 +85,52 @@ Client.prototype.render = function () {
  */
 Client.prototype.init = function () {
 
+  // Initialise renderer
+  this.renderer.setSize( window.innerWidth, window.innerHeight );
+  this.renderer.autoClear = false;
+  
+  // Draw to specified dom element
+  container = document.getElementById( 'container' );
+  container.appendChild( this.renderer.domElement );
+
+  // Main scene. Holds river, landscape and player model
   scene = new THREE.Scene();
-  //scene.fog = new THREE.Fog( 0x58c2c0, 1, 200 );
+  scene.fog = new THREE.Fog( 0x58c2c0, 1, 800 );
 
   // TODO: Transition to z axis being up
   //camera.up = THREE.Vector3(0, 1, 0);
   this.camera.position.set(72, 8, 105);
-  
-  controls = new THREE.FirstPersonControls( this.camera );
-
-  controls.movementSpeed = 100;
-  controls.lookSpeed = 0.05;
-  controls.lookVertical = false;
- 
+   
   scene.add(this.camera);
-    
-  ambientLight = new THREE.AmbientLight(0xffffff);
+  
+  // Add ambient light
+  var ambientLight = new THREE.AmbientLight(0xffffff);
   scene.add(ambientLight);
 
-  directionalLight = new THREE.DirectionalLight(0xffff44);
+  var directionalLight = new THREE.DirectionalLight(0xffff44);
   directionalLight.position = BaseGame.lightDirection.normalize();
-  scene.add(directionalLight);  
-  
-  // Landscape
-  
-  this.landscape = new Landscape(this.level);
-    
+  scene.add(directionalLight);     
                         
-  //Landscape
+  /* In general objects know how to construct their own meshes.
+     However they do not have responsibility for rendering themselves. I wish
+     to decouple the renderer as much as possible from the physics engine */
+                        
+  // Generate landscape and add to scene
   scene.add(this.landscape.generateMesh()[0]);
   scene.add(this.landscape.generateMesh()[1]);
   
-  // River
+  // Generate river and add to scene
   scene.add(this.landscape.river.generateMesh());
   
-  // Skybox
-	cameraCube = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 100000 );
-  cubeTarget = new THREE.Vector3( 0, 0, 0 );
-  sceneCube = new THREE.Scene();
+  scene.add(this.camera);
   
-  var path = "skybox/";
-  var format = '.jpg';
-  var urls = [
-    path + 'px' + format, path + 'nx' + format,
-    path + 'py' + format, path + 'ny' + format,
-    path + 'pz' + format, path + 'nz' + format
-  ];  
+  var skyBox = new SkyBox();
   
-  var textureCube = THREE.ImageUtils.loadTextureCube( urls, new THREE.CubeRefractionMapping() );
+  skyBox.scene.add(skyBox.generateMesh());
   
-
-  var shader = THREE.ShaderUtils.lib[ "cube" ];
-  shader.uniforms[ "tCube" ].texture = textureCube;
-
-  var cubeMaterial = new THREE.ShaderMaterial( {
-
-    fragmentShader: shader.fragmentShader,
-    vertexShader: shader.vertexShader,
-    uniforms: shader.uniforms,
-    depthWrite: false
-
-  } );
-
-  mesh = new THREE.Mesh( new THREE.CubeGeometry( 1000, 1000, 1000 ), cubeMaterial );
-  mesh.flipSided = true;
-  sceneCube.add( mesh );
-  sceneCube.add(cameraCube);
-
-  renderer = new THREE.WebGLRenderer( { antialias: true } );
-  renderer.setSize( window.innerWidth, window.innerHeight );
-  renderer.autoClear = false;
+  this.scene = scene;  
+  this.skyBox = skyBox;
   
-  container = document.getElementById( 'container' );
-
-  container.appendChild( renderer.domElement );
-  
-  this.scene = scene;
-  this.renderer = renderer;
-  this.controls = controls;
-  
-  this.cameraCube = cameraCube;
-  this.sceneCube = sceneCube;
-  this.cubeTarget = cubeTarget;
-  
-  this.stats = new Stats();
   this.stats.domElement.style.position = 'absolute';
   this.stats.domElement.style.top = '0px';
   container.appendChild( this.stats.domElement );
