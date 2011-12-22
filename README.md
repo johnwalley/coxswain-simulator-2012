@@ -14,3 +14,10 @@ You can always watch a video.
 This is my attempt at learning Javascript and WebGL at the same time!
 
 Based on <a href="http://exdream.com/XnaRacingGame/">XNA Racing Game</a> a complete XNA Game Studio Express game.
+
+## References
+
+* [Fix Your Timestep]http://gafferongames.com/game-physics/fix-your-timestep/
+* [Networked Physics]http://gafferongames.com/game-physics/networked-physics/
+* [Multiplayer HTML5 Osmos]https://github.com/borismus/osmus
+
