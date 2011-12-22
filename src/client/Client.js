@@ -6,7 +6,7 @@
  * Main entry class for our game
  * @constructor
  */
-function CoxSimManager() {
+function Client() {
   input = new Input();
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.5, 8000 );
   this.player = new Player(input, camera);
@@ -18,19 +18,19 @@ function CoxSimManager() {
 }
 
 
-CoxSimManager.prototype.run = function () {
+Client.prototype.run = function () {
   this.init();
   // Game loop
   this.step();
 }
 
-CoxSimManager.prototype.step = function () {
+Client.prototype.step = function () {
   this.update();
   this.draw();
   requestAnimationFrame(this.step.bind(this));
 }
 
-CoxSimManager.prototype.update = function () {
+Client.prototype.update = function () {
   // this.input.update();
   // this.sound.update();
   this.player.update();
@@ -48,12 +48,12 @@ CoxSimManager.prototype.update = function () {
  * Draw
  * @param gameTime Game time
  */
-CoxSimManager.prototype.draw = function (gameTime) {
+Client.prototype.draw = function (gameTime) {
   this.render();
   // this.uiRenderer.render();
 }
 
-CoxSimManager.prototype.render = function () {
+Client.prototype.render = function () {
   this.cameraCube.lookAt(this.cubeTarget);  
   
 	this.renderer.render(this.sceneCube, this.cameraCube);  
@@ -64,7 +64,7 @@ CoxSimManager.prototype.render = function () {
  * Initialisation function
  * Does a lot of heavy lifting currently
  */
-CoxSimManager.prototype.init = function () {
+Client.prototype.init = function () {
 
   scene = new THREE.Scene();
   //scene.fog = new THREE.Fog( 0x58c2c0, 1, 200 );
