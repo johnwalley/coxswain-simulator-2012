@@ -23,17 +23,18 @@ function Client() {
   this.landscape = new Landscape(this.level);
 
   // Test connection to server
-  try {
-    this.socket = io.connect('http://localhost:27960');
-    
-    this.socket.on('motd', function (data) {
-    console.log(data.motd);
-    });    
-  } catch (e){
-    console.log('Unable to connect to server');
-  }
+  this.socket = io.connect('http://localhost:27960');
   
+  this.socket.on('motd', function (data) {
+    console.log(data.motd);
+  });
 
+  // Experimental multiplayer support (client acts as spectator)
+  this.socket.on('state', (function(data) {
+    this.player.boatPos.set(data.x, data.y, data.z);
+  }).bind(this));  
+  
+  this.socket.emit('join', { name: 'marv' });
 }
 
 
@@ -46,6 +47,7 @@ Client.prototype.run = function () {
 Client.prototype.step = function () {
   this.update();
   this.draw();
+  this.socket.emit('state', {x:this.player.boatPos.x, y:this.player.boatPos.y, z:this.player.boatPos.z});  
   requestAnimationFrame(this.step.bind(this));
 }
 
