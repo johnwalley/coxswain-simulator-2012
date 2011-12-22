@@ -60,6 +60,10 @@ CoxSimManager.prototype.render = function () {
   this.renderer.render(this.scene, this.player.camera);
 }
 
+/**
+ * Initialisation function
+ * Does a lot of heavy lifting currently
+ */
 CoxSimManager.prototype.init = function () {
 
   scene = new THREE.Scene();
@@ -89,132 +93,14 @@ CoxSimManager.prototype.init = function () {
   // Landscape
   
   this.landscape = new Landscape(this.level);
-  
-  //landscape = new Landscape();
-  //landscapeGeometry = new THREE.Geometry();
-  //
-  //for (var num = 0; num < landscape.vertices.length; num++) {
-  //  landscapeGeometry.vertices.push(new THREE.Vertex(landscape.vertices[num].pos));
-  //}    
-  //  
-  //landscapeGeometry.faceVertexUvs[0] = [];   
-  //
-  //var uvs;
-  //var offset = 0;
-  //while ( offset < landscape.indices.length ) {
-  //
-  //  face = new THREE.Face3();
-  //
-  //  uvs = new Array(3);
-  //  
-  //  uvs[0] = new THREE.UV(landscape.vertices[landscape.indices[offset]].uv.x, 
-  //  landscape.vertices[landscape.indices[offset]].uv.y);
-  //  //face.vertexNormals.push(new THREE.Vector3(1,1,0));
-  //  //face.vertexNormals.push(new THREE.Vector3().copy(landscape.vertices[landscape.indices[offset]].normal));
-  //  face.a = landscape.indices[ offset++ ];
-  //  
-  //  uvs[1] = new THREE.UV(landscape.vertices[landscape.indices[offset]].uv.x, 
-  //  landscape.vertices[landscape.indices[offset]].uv.y);  
-  //  //face.vertexNormals.push(new THREE.Vector3(1,1,0));
-  //  //face.vertexNormals.push(new THREE.Vector3().copy(landscape.vertices[landscape.indices[offset]].normal));
-  //  face.b = landscape.indices[ offset++ ];
-  //  
-  //  uvs[2] = new THREE.UV(landscape.vertices[landscape.indices[offset]].uv.x, 
-  //  landscape.vertices[landscape.indices[offset]].uv.y);    
-  //  //face.vertexNormals.push(new THREE.Vector3(1,1,0));
-  //  //face.vertexNormals.push(new THREE.Vector3().copy(landscape.vertices[landscape.indices[offset]].normal));    
-  //  face.c = landscape.indices[ offset++ ]; 
-  //
-  //  landscapeGeometry.faces.push(face);
-  //  landscapeGeometry.faceVertexUvs[0].push(uvs);    
-  //}
-  //
-  //landscapeGeometry.computeFaceNormals();
-	//landscapeGeometry.computeVertexNormals();
-  //  
-  //landscapeMaterial = new THREE.MeshLambertMaterial( { color: 0x55ff33, ambient: 0x555533, shading: THREE.FlatShading, wireframe: false } );  
-  //
-  //var landscapeMesh = new THREE.Mesh( landscapeGeometry, landscapeMaterial );
-  //
-  //landscapeMesh.position.x = -500;
-  //landscapeMesh.position.y = -10;
-  //landscapeMesh.position.z = -500;
-  //scene.add(landscapeMesh);    
+    
                         
-  geometry0 = new THREE.Geometry();
+  //Landscape
+  scene.add(this.landscape.generateMesh()[0]);
+  scene.add(this.landscape.generateMesh()[1]);
   
-  var landscapeLeftPts = [];
-  var landscapeRightPts = [];
-  
-  for (var num = 0; num < this.landscape.river.riverVertices.length; num++) {
-    geometry0.vertices.push(new THREE.Vertex(this.landscape.river.riverVertices[num].pos));
-    if (!(num % 5)) {
-      landscapeLeftPts.push( new THREE.Vector2( this.landscape.river.riverVertices[num].pos.x, this.landscape.river.riverVertices[num].pos.z ) );  
-    }
-    if (!((num+1) % 5)) {
-      landscapeRightPts.push( new THREE.Vector2( this.landscape.river.riverVertices[num].pos.x, this.landscape.river.riverVertices[num].pos.z ) );        
-    }      
-  }  
-  
-  landscapeLeftPts.push( new THREE.Vector2(3500, 4000) );
-  landscapeLeftPts.push( new THREE.Vector2(3500, -100) );  
-  landscapeLeftPts.push( new THREE.Vector2(this.landscape.river.riverVertices[5].pos.x, this.landscape.river.riverVertices[5].pos.z ) ); 
-  
-  landscapeRightPts.push( new THREE.Vector2(-100, 4000) ); 
-  landscapeRightPts.push( new THREE.Vector2(-100, 0) ); 
-  landscapeRightPts.push( new THREE.Vector2(this.landscape.river.riverVertices[5].pos.x, this.landscape.river.riverVertices[5].pos.z ) );   
-  
-  var landscapeLeftShape = new THREE.Shape( landscapeLeftPts );
-  var landscapeRightShape = new THREE.Shape( landscapeRightPts );
-  
-  var landscapeLeft3d = new THREE.ExtrudeGeometry( landscapeLeftShape, { amount: 10	} );
-  var landscapeRight3d = new THREE.ExtrudeGeometry( landscapeRightShape, { amount: 10	} );
-
-  var meshLeft = THREE.SceneUtils.createMultiMaterialObject( landscapeLeft3d, [ new THREE.MeshLambertMaterial( { color: 0x22aa33 } )] );
-  
-  var meshRight = THREE.SceneUtils.createMultiMaterialObject( landscapeRight3d, [ new THREE.MeshLambertMaterial( { color: 0x22aa33 } )] );  
-  
-  meshLeft.rotation.set( Math.PI/2, 0, 0 );
-  meshRight.rotation.set( Math.PI/2, 0, 0 );
-  
-  scene.add( meshLeft );    
-  scene.add( meshRight )
-   
-  geometry0.faceVertexUvs[0] = [];   
-  
-  var uvs;
-  var offset = 0;
-  while ( offset < this.landscape.river.riverIndices.length ) {
-
-    face = new THREE.Face3();
-
-    uvs = new Array(3);
-    
-    uvs[0] = new THREE.UV(this.landscape.river.riverVertices[this.landscape.river.riverIndices[offset]].uv.x, 
-    this.landscape.river.riverVertices[this.landscape.river.riverIndices[offset]].uv.y);
-    face.a = this.landscape.river.riverIndices[ offset++ ];
-    
-    uvs[1] = new THREE.UV(this.landscape.river.riverVertices[this.landscape.river.riverIndices[offset]].uv.x, 
-    this.landscape.river.riverVertices[this.landscape.river.riverIndices[offset]].uv.y);    
-    face.b = this.landscape.river.riverIndices[ offset++ ];
-    
-    uvs[2] = new THREE.UV(this.landscape.river.riverVertices[this.landscape.river.riverIndices[offset]].uv.x, 
-    this.landscape.river.riverVertices[this.landscape.river.riverIndices[offset]].uv.y);    
-    face.c = this.landscape.river.riverIndices[ offset++ ];  
-    
-    geometry0.faces.push(face);
-    geometry0.faceVertexUvs[0].push(uvs);    
-  }
- 
-  texture = THREE.ImageUtils.loadTexture( "textures/water.jpg" );
-  texture.wrapS = 0;
-  texture.wrapT = 0;
-  
-  material0 = new THREE.MeshBasicMaterial( { map: texture, wireframe: false, transparent: true, opacity: 0.9 } );  
-  
-  var riverMesh = new THREE.Mesh( geometry0, material0 );
-  riverMesh.position.set(0, 5, 0);
-  scene.add(riverMesh);  
+  // River
+  scene.add(this.landscape.river.generateMesh());
   
   // Skybox
 	cameraCube = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 100000 );
@@ -272,4 +158,3 @@ CoxSimManager.prototype.init = function () {
   
   this.clock = new THREE.Clock();
 }
-

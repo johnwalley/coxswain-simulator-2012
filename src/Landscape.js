@@ -2,25 +2,73 @@
  * Landscape geometry and utility methods to build it
  * @constructor
  */
- function Landscape(level) {
+function Landscape(level) {
  
   this.river = null;
  
   this.reloadLevel(level);
  
- }
+}
  
- Landscape.prototype.reloadLevel = function (level) {
-    this.level = level;
-    
-    if (this.river == null) {
-      this.river = new River("River" + this.level);
-    } else {
-      this.river.reload("River" + this.level);
+Landscape.prototype.reloadLevel = function (level) {
+  this.level = level;
+  
+  if (this.river == null) {
+    this.river = new River("River" + this.level);
+  } else {
+    this.river.reload("River" + this.level);
+  }
+}
+ 
+Landscape.prototype.updateBoatRiverPosition = function (boatPos, riverSegmentNumber, riverSegmentPercent) {
+  return this.river.updateBoatRiverPosition(boatPos, riverSegmentNumber, riverSegmentPercent);
+}
+
+Landscape.prototype.getRiverPositionMatrix = function (riverSegmentNumber, riverSegmentPercent) {
+  return this.river.getRiverPositionMatrix(riverSegmentNumber, riverSegmentPercent);
+}
+
+Landscape.prototype.generateMesh = function () {
+  geometry = new THREE.Geometry();
+  
+  var landscapeLeftPts = [];
+  var landscapeRightPts = [];
+  
+  for (var num = 0; num < this.river.riverVertices.length; num++) {
+    geometry.vertices.push(new THREE.Vertex(this.river.riverVertices[num].pos));
+    if (!(num % 5)) {
+      landscapeLeftPts.push( new THREE.Vector2( this.river.riverVertices[num].pos.x, this.river.riverVertices[num].pos.z ) );  
     }
- }
+    if (!((num+1) % 5)) {
+      landscapeRightPts.push( new THREE.Vector2( this.river.riverVertices[num].pos.x, this.river.riverVertices[num].pos.z ) );        
+    }      
+  }  
+  
+  landscapeLeftPts.push( new THREE.Vector2(3500, 4000) );
+  landscapeLeftPts.push( new THREE.Vector2(3500, -100) );  
+  landscapeLeftPts.push( new THREE.Vector2(this.river.riverVertices[5].pos.x, this.river.riverVertices[5].pos.z ) ); 
+  
+  landscapeRightPts.push( new THREE.Vector2(-100, 4000) ); 
+  landscapeRightPts.push( new THREE.Vector2(-100, 0) ); 
+  landscapeRightPts.push( new THREE.Vector2(this.river.riverVertices[5].pos.x, this.river.riverVertices[5].pos.z ) );   
+  
+  var landscapeLeftShape = new THREE.Shape( landscapeLeftPts );
+  var landscapeRightShape = new THREE.Shape( landscapeRightPts );
+  
+  var landscapeLeft3d = new THREE.ExtrudeGeometry( landscapeLeftShape, { amount: 10	} );
+  var landscapeRight3d = new THREE.ExtrudeGeometry( landscapeRightShape, { amount: 10	} );
+
+  var meshLeft = THREE.SceneUtils.createMultiMaterialObject( landscapeLeft3d, [ new THREE.MeshLambertMaterial( { color: 0x22aa33 } )] );
+  
+  var meshRight = THREE.SceneUtils.createMultiMaterialObject( landscapeRight3d, [ new THREE.MeshLambertMaterial( { color: 0x22aa33 } )] );  
+  
+  meshLeft.rotation.set( Math.PI/2, 0, 0 );
+  meshRight.rotation.set( Math.PI/2, 0, 0 );
+  
+  return [meshLeft, meshRight];    
+}
  
- function lala() {
+function lala() {
  
   this.gridWidth = 256;
   this.gridHeight = 256;
@@ -76,6 +124,58 @@
         x / (this.gridWidth - 1));      
     
     }  
+    
+    // Removed from CoxSimManager
+      //landscape = new Landscape();
+  //landscapeGeometry = new THREE.Geometry();
+  //
+  //for (var num = 0; num < landscape.vertices.length; num++) {
+  //  landscapeGeometry.vertices.push(new THREE.Vertex(landscape.vertices[num].pos));
+  //}    
+  //  
+  //landscapeGeometry.faceVertexUvs[0] = [];   
+  //
+  //var uvs;
+  //var offset = 0;
+  //while ( offset < landscape.indices.length ) {
+  //
+  //  face = new THREE.Face3();
+  //
+  //  uvs = new Array(3);
+  //  
+  //  uvs[0] = new THREE.UV(landscape.vertices[landscape.indices[offset]].uv.x, 
+  //  landscape.vertices[landscape.indices[offset]].uv.y);
+  //  //face.vertexNormals.push(new THREE.Vector3(1,1,0));
+  //  //face.vertexNormals.push(new THREE.Vector3().copy(landscape.vertices[landscape.indices[offset]].normal));
+  //  face.a = landscape.indices[ offset++ ];
+  //  
+  //  uvs[1] = new THREE.UV(landscape.vertices[landscape.indices[offset]].uv.x, 
+  //  landscape.vertices[landscape.indices[offset]].uv.y);  
+  //  //face.vertexNormals.push(new THREE.Vector3(1,1,0));
+  //  //face.vertexNormals.push(new THREE.Vector3().copy(landscape.vertices[landscape.indices[offset]].normal));
+  //  face.b = landscape.indices[ offset++ ];
+  //  
+  //  uvs[2] = new THREE.UV(landscape.vertices[landscape.indices[offset]].uv.x, 
+  //  landscape.vertices[landscape.indices[offset]].uv.y);    
+  //  //face.vertexNormals.push(new THREE.Vector3(1,1,0));
+  //  //face.vertexNormals.push(new THREE.Vector3().copy(landscape.vertices[landscape.indices[offset]].normal));    
+  //  face.c = landscape.indices[ offset++ ]; 
+  //
+  //  landscapeGeometry.faces.push(face);
+  //  landscapeGeometry.faceVertexUvs[0].push(uvs);    
+  //}
+  //
+  //landscapeGeometry.computeFaceNormals();
+	//landscapeGeometry.computeVertexNormals();
+  //  
+  //landscapeMaterial = new THREE.MeshLambertMaterial( { color: 0x55ff33, ambient: 0x555533, shading: THREE.FlatShading, wireframe: false } );  
+  //
+  //var landscapeMesh = new THREE.Mesh( landscapeGeometry, landscapeMaterial );
+  //
+  //landscapeMesh.position.x = -500;
+  //landscapeMesh.position.y = -10;
+  //landscapeMesh.position.z = -500;
+  //scene.add(landscapeMesh);  
   }
   
   var indices = new Array((this.gridWidth - 1) * (this.gridHeight - 1) * 6);

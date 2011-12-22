@@ -28,6 +28,76 @@ River.prototype.reload = function (riverName) {
 }
 
 /**
+ * Update boat river position
+ * @param {THREE.Vector3 }boatPos Boat position
+ * @param {Number} riverSegmentNumber River segment number
+ */
+River.prototype.updateBoatRiverPosition = function (boatPos, riverSegmentNumber, riverSegmentPercent) {
+  var num = riverSegmentNumber;
+  
+  gotBoatInThisSegment = false;
+  thisPointDist = 0;
+  nextPointDist = 1;
+  maxNumberOfIterations = 100;
+  
+  do {
+    thisPoint = this.points[num];
+    nextPoint = this.points[num+1];
+    
+    thisPointDist = new THREE.Vector3().sub(boatPos, thisPoint.pos).dot(thisPoint.dir);
+    nextPointDist = new THREE.Vector3().sub(nextPoint.pos, boatPos).dot(nextPoint.dir);
+    
+    if (thisPointDist < 0) {
+      num--;
+    } else if (nextPointDist < 0) {
+      num++;
+    } else {
+      gotBoatInThisSegment = true;
+    }
+    
+    if (maxNumberOfIterations-- < 0) {
+      return;
+    }
+  } while (gotBoatInThisSegment == false);
+  
+  riverSegmentNumber = num;
+  
+  segmentLength = thisPointDist + nextPointDist;
+  if (segmentLength == 0) {
+    riverSegmentPercent = 0;
+  } else {
+    riverSegmentPercent = thisPointDist/nextPointDist;
+  }
+  
+  return {
+    riverSegmentNumber: riverSegmentNumber,
+    riverSegmentPercent: riverSegmentPercent
+  }
+}
+
+/**
+ * Get river position matrix
+ */
+River.prototype.getRiverPositionMatrix = function (riverSegmentNumber, riverSegmentPercent) {
+  // Make sure we are between 0 and 1
+  if (riverSegmentPercent < 0) {
+    riverSegmentPercent = 0;
+  }
+  if (riverSegmentPercent > 1) {
+    riverSegmentPercent = 1;
+  }
+  
+  var pointPercent = riverSegmentPercent;
+  var num = riverSegmentNumber;
+  
+  return {
+    right: new THREE.Vector3(0,0,0),
+    forward: new THREE.Vector3(0,0,0),
+    translation: new THREE.Vector3(0,0,0)
+  }
+}
+
+/**
  * Generate vertices from spline control points
  */
 River.prototype.generateVerticesAndObjects = function () {
@@ -76,4 +146,54 @@ River.prototype.generateVerticesAndObjects = function () {
   }  
   
   this.riverIndices = indices;
+}
+
+/**
+ * Generate mesh from vertices
+ */
+River.prototype.generateMesh = function () {
+
+  geometry = new THREE.Geometry();
+
+  for (var num = 0; num < this.riverVertices.length; num++) {
+    geometry.vertices.push(new THREE.Vertex(this.riverVertices[num].pos));
+    
+  }
+  
+  geometry.faceVertexUvs[0] = [];   
+  
+  var uvs;
+  var offset = 0;
+  while ( offset < this.riverIndices.length ) {
+
+    face = new THREE.Face3();
+
+    uvs = new Array(3);
+    
+    uvs[0] = new THREE.UV(this.riverVertices[this.riverIndices[offset]].uv.x, 
+    this.riverVertices[this.riverIndices[offset]].uv.y);
+    face.a = this.riverIndices[ offset++ ];
+    
+    uvs[1] = new THREE.UV(this.riverVertices[this.riverIndices[offset]].uv.x, 
+    this.riverVertices[this.riverIndices[offset]].uv.y);    
+    face.b = this.riverIndices[ offset++ ];
+    
+    uvs[2] = new THREE.UV(this.riverVertices[this.riverIndices[offset]].uv.x, 
+    this.riverVertices[this.riverIndices[offset]].uv.y);    
+    face.c = this.riverIndices[ offset++ ];  
+    
+    geometry.faces.push(face);
+    geometry.faceVertexUvs[0].push(uvs);    
+  }
+ 
+  texture = THREE.ImageUtils.loadTexture( "textures/water.jpg" );
+  texture.wrapS = 0;
+  texture.wrapT = 0;
+  
+  material = new THREE.MeshBasicMaterial( { map: texture, wireframe: false, transparent: true, opacity: 0.9 } );  
+  
+  mesh = new THREE.Mesh(geometry, material);
+  mesh.position.set(0, 5, 0);
+  
+  return mesh;
 }

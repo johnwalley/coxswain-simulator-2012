@@ -1,14 +1,17 @@
 /**
  * River data
  * @constructor
- * @param {String} riverName River name to load 
  */
-function RiverData(riverName) {
-
+function RiverData() {
 }
 
+/**
+ * Load river data
+ * @param {String} riverName River name to load 
+ */
 RiverData.prototype.load = function (filename) {
-    return [new THREE.Vector3(-141.18,0,-217.65),
+  // TODO: Load from disk
+  return [new THREE.Vector3(-141.18,0,-217.65),
     new THREE.Vector3(0,0,0),
     new THREE.Vector3(141.18,0,217.65),
     new THREE.Vector3(382.35,0,452.94),
