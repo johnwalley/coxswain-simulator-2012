@@ -27,48 +27,23 @@ define(function () {
       this.viewHalfY = this.domElement.offsetHeight / 2;
       this.domElement.setAttribute( 'tabindex', -1 );
     }  
-    
-    this.onMouseDown = function (event) {
-      if (this.domElement !== document) {
-        this.domElement.focus();
-      }
 
-      event.preventDefault();
-      event.stopPropagation();
+    this.onMouseMove = function ( event ) {
 
-      if (this.activeLook) {
-        switch ( event.button ) {
-          case 0: this.moveForward = true; break;
-          case 2: this.moveBackward = true; break;
-        }
-      }
+      if ( this.domElement === document ) {
 
-      this.mouseDragOn = true;
-    };
-
-    this.onMouseUp = function (event) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      if (this.activeLook) {
-        switch ( vent.button) {
-          case 0: this.moveForward = false; break;
-          case 2: this.moveBackward = false; break;
-        }
-      }
-
-      this.mouseDragOn = false;
-    };
-
-    this.onMouseMove = function (event) {
-      if (this.domElement === document) {
-        this.mouseX = event.pageX - this.viewHalfX;
+        this.mouseX = (event.pageX - this.viewHalfX)/this.viewHalfX;
         this.mouseY = event.pageY - this.viewHalfY;
+
       } else {
+
         this.mouseX = event.pageX - this.domElement.offsetLeft - this.viewHalfX;
         this.mouseY = event.pageY - this.domElement.offsetTop - this.viewHalfY;
+
       }
-    };  
+
+    };
+
     
     this.onKeyDown = function (event) {
       switch(event.keyCode) {   
@@ -102,6 +77,7 @@ define(function () {
       }
     };  
     
+    this.domElement.addEventListener('mousemove', this.onMouseMove.bind(this), false );    
     this.domElement.addEventListener('keydown', this.onKeyDown.bind(this), false);
     this.domElement.addEventListener('keyup', this.onKeyUp.bind(this), false);
 

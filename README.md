@@ -29,3 +29,7 @@ Based on <a href="http://exdream.com/XnaRacingGame/">XNA Racing Game</a> a compl
 * [Multiplayer HTML5 Osmos](https://github.com/borismus/osmus)
 * [EC2 web app template](https://github.com/rsms/ec2-webapp)
 
+Interesting stuff to get around to reading
+
+* [http://chandler.prallfamily.com/2011/12/constructive-solid-geometry-with-three-js/](Constructive solid geometry with Three.js)
+

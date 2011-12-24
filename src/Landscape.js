@@ -58,9 +58,9 @@ Landscape.prototype.generateMesh = function () {
   var landscapeLeft3d = new THREE.ExtrudeGeometry( landscapeLeftShape, { amount: 10	} );
   var landscapeRight3d = new THREE.ExtrudeGeometry( landscapeRightShape, { amount: 10	} );
 
-  var meshLeft = THREE.SceneUtils.createMultiMaterialObject( landscapeLeft3d, [ new THREE.MeshLambertMaterial( { color: 0x22aa33 } )] );
+  var meshLeft = THREE.SceneUtils.createMultiMaterialObject(landscapeLeft3d, [new THREE.MeshLambertMaterial( { color: 0x22aa33 } )]);
   
-  var meshRight = THREE.SceneUtils.createMultiMaterialObject( landscapeRight3d, [ new THREE.MeshLambertMaterial( { color: 0x22aa33 } )] );  
+  var meshRight = THREE.SceneUtils.createMultiMaterialObject(landscapeRight3d, [new THREE.MeshLambertMaterial( { color: 0x22aa33 } )]);  
   
   meshLeft.rotation.set( Math.PI/2, 0, 0 );
   meshRight.rotation.set( Math.PI/2, 0, 0 );

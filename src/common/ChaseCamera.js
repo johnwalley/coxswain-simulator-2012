@@ -43,12 +43,14 @@ define(["common/BoatPhysics"], function (BoatPhysics) {
   }
 
   ChaseCamera.prototype.updateView = function () {
+  
+    // This function is an abomination of misunderstanding and hacks. Do better!
 
-    this.cameraLookVector = this.boatDir;
+    this.cameraLookVector = this.boatDir.clone();
     
-    this.cameraLookVector.multiplyScalar(-1);
+    this.cameraLookVector.multiplyScalar(-10);
 
-    this.cameraPos = new THREE.Vector3().add(this.lookAtPos, this.cameraLookVector);
+    this.cameraPos = new THREE.Vector3().add(this.boatPos, this.cameraLookVector).addSelf(this.boatUp).addSelf(this.boatUp).addSelf(this.boatUp);
     
   }
   

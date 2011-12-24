@@ -67,8 +67,8 @@ define(["common/BasePlayer"], function (BasePlayer) {
     this.lastAccelerationResult = 0;
     
     //this.boatPos = boatPosition;
-    this.boatPos = new THREE.Vector3(72, 8, 125);
-    this.boatAngle = 0.0;
+    this.boatPos = new THREE.Vector3(90, 1, 125);
+    this.boatAngle = 1.1;
     this.boatUp = new THREE.Vector3(0, 1, 0);
     
     this.virtualRotationAmount = 0.0;
@@ -98,6 +98,10 @@ define(["common/BasePlayer"], function (BasePlayer) {
     this.riverSegmentPercent = 0;
   }
 
+  /**
+   * Update boat physics
+   * @param {Number} delta time period to simulate ahead
+   */
   BoatPhysics.prototype.update = function (delta) {
     BasePlayer.prototype.update.call(this, delta);
     
@@ -127,6 +131,8 @@ define(["common/BasePlayer"], function (BasePlayer) {
       this.rotationChange = 0;
     }
     
+    this.rotationChange = -this.input.mouseX * moveFactor / 2.5;
+    
     var maxRot = this.maxRotationPerSec * moveFactor * 1.25;
     
     // Handle car rotation after collision
@@ -151,10 +157,10 @@ define(["common/BasePlayer"], function (BasePlayer) {
     else
     {
       // If we are staying or moving very slowly, limit rotation!
-      if (this.speed < 5.0) {
-        this.rotationChange *= 0.67 + 0.33 * this.speed / 10.0;
+      if (Math.abs(this.speed) < 5.0) {
+        this.rotationChange *= 0.67 + 0.33 * this.speed / 100.0;
       } else {
-        this.rotationChange *= 1.0 + (this.speed - 10) / 100.0;
+        this.rotationChange *= 1.0 + (this.speed - 10) / 10.0;
       }
     }    
     
@@ -218,20 +224,17 @@ define(["common/BasePlayer"], function (BasePlayer) {
     if (this.speed > this.maxSpeed) {
       this.speed = this.maxSpeed;
     }
-    if (this.speed < -this.maxSpeed) {
-      this.speed = -this.maxSpeed;  
+    // TODO: Add maxReverseSpeed
+    if (this.speed < -this.maxSpeed*0.1) {
+      this.speed = -this.maxSpeed*0.1;  
     }
-    
-    
+      
     // Apply speed and calculate new boat position.
     this.boatPos.addSelf(this.boatDir.multiplyScalar(this.speed * moveFactor * 1.75));  
-    
-    
+
     var oldRiverSegmentNumber = this.riverSegmentNumber;
     
     // Where are we on the river?
-    // FIXME: Isn't this a violation of encapsulation? Why should I know about game?
-    // We can cope with knowing landscape
     var position = this.landscape.updateBoatRiverPosition(this.boatPos, this.riverSegmentNumber, this.riverSegmentPercent);
     
     this.riverSegmentNumber = position.riverSegmentNumber;

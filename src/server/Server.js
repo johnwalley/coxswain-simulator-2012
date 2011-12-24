@@ -19,7 +19,7 @@ define(['../../utils/nodejs/node_modules/socket.io'], function (io) {
     var playerCount = 0;
     var motd = 'Welcome to Coxswain Simulator 2012!';
 
-    var position = null;
+    var position = [{x:0, y:0, z:0}, {x:0, y:0, z:0}];
 
     server.sockets.on('connection', function (socket) {
 
@@ -31,16 +31,13 @@ define(['../../utils/nodejs/node_modules/socket.io'], function (io) {
       
       // Client joins the game
       socket.on('join', function(data) {
-        playerId = playerCount;
+        playerId = playerCount-1;
         console.info(playerId + ' joined the game');
       });
       
       socket.on('state', function(data) {
-        if (playerId == 1) {
-          position = data;
-        } else {
-          socket.emit('state', position);
-        }
+        position[playerId] = data;
+        socket.emit('state', position[1-playerId]);
       });   
       
       socket.on('disconnect', function () {

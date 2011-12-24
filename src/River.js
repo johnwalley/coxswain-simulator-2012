@@ -91,8 +91,8 @@ River.prototype.getRiverPositionMatrix = function (riverSegmentNumber, riverSegm
   var num = riverSegmentNumber;
   
   return {
-    right: new THREE.Vector3(0,0,0),
-    forward: new THREE.Vector3(0,0,0),
+    right: new THREE.Vector3(0, 0, 0),
+    forward: new THREE.Vector3(0, 0, 0),
     translation: new THREE.Vector3(0,0,0)
   }
 }
@@ -185,15 +185,21 @@ River.prototype.generateMesh = function () {
     geometry.faces.push(face);
     geometry.faceVertexUvs[0].push(uvs);    
   }
+  
+  geometry.mergeVertices();
+  
+  geometry.computeFaceNormals();
+	geometry.computeVertexNormals();
  
   texture = THREE.ImageUtils.loadTexture( "textures/water.jpg" );
   texture.wrapS = 0;
   texture.wrapT = 0;
   
-  material = new THREE.MeshBasicMaterial( { map: texture, wireframe: false, transparent: true, opacity: 0.9 } );  
+  material = new THREE.MeshPhongMaterial( { color: 0x2244bb } );  
+  //material = new THREE.MeshBasicMaterial( { map: texture, transparent: true, opacity: 0.7 } );  
   
   mesh = new THREE.Mesh(geometry, material);
-  mesh.position.set(0, 5, 0);
+  mesh.position.set(0, 0, 0);
   
   return mesh;
 }

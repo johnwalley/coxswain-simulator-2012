@@ -12,13 +12,18 @@ function SkyBox() {
   this.scene = new THREE.Scene();
 }
 
-SkyBox.prototype.generateMesh = function () {
-  var path = "skybox/";
+SkyBox.prototype.generateMesh = function (name) {
+  var path = 'textures/cube/';
+  var skyBoxName = {
+    day: 'skybox/',
+    night: 'night/fade/'
+  }
   var format = '.jpg';
+  
   var urls = [
-    path + 'px' + format, path + 'nx' + format,
-    path + 'py' + format, path + 'ny' + format,
-    path + 'pz' + format, path + 'nz' + format
+    path + skyBoxName.night + 'px' + format, path + skyBoxName.night + 'nx' + format,
+    path + skyBoxName.night + 'py' + format, path + skyBoxName.night + 'ny' + format,
+    path + skyBoxName.night + 'pz' + format, path + skyBoxName.night + 'nz' + format
   ];  
   
   var texture = THREE.ImageUtils.loadTextureCube(urls, new THREE.CubeRefractionMapping());

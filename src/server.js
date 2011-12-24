@@ -14,5 +14,5 @@ requirejs.config({
 });
  
 requirejs(["server/Server"], function (Server) {
-  var game = new Server();
+  var server = new Server();
 });
