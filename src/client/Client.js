@@ -158,17 +158,17 @@ define(['common/Player', 'client/Input', 'Landscape'], function (Player, Input, 
     scene.add(riverMesh);
     
     // Generate boat model and add to scene
-    pointLight = new THREE.PointLight(0xaaffaa, 1, 100);
+    pointLight = new THREE.PointLight(0xff1111, 1, 100);
     pointLight.position = this.player.boatPos;
     scene.add(pointLight);
     
     sphere = new THREE.SphereGeometry(8, 16, 8, 1);
-    lightMesh = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({color: 0x00ff00}));
+    lightMesh = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({color: 0xff1111}));
     lightMesh.scale.set(0.05, 0.05, 0.05);
     lightMesh.position = pointLight.position;
     scene.add(lightMesh);
 
-    pointLight = new THREE.PointLight(0xaaaaff, 1, 100);
+    pointLight = new THREE.PointLight(0x0000ff, 1, 100);
     pointLight.position = this.opponent.boatPos;
     scene.add(pointLight);
     
