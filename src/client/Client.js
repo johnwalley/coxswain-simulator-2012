@@ -3,6 +3,12 @@
  */
 
  define(["common/Player"], function (Player) {
+  /** 
+    A module representing the client
+    @exports Client
+    @version 1.0
+   */
+ 
   /**
    * Main entry class for our game
    * @constructor

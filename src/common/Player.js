@@ -2,7 +2,7 @@
  * @author John Walley / http://www.walley.org.uk/
  */
  
- define(function () { 
+ define(["common/ChaseCamera"], function (ChaseCamera) { 
    /**
    * Player helper class, holds all the current game properties:
    * Fuel, Health, Speed, Lives and Score.
