@@ -2,7 +2,7 @@
  * @author John Walley / http://www.walley.org.uk/
  */
 
- define(['common/Player', 'client/Input'], function (Player, Input) {
+define(['common/Player', 'client/Input', 'Landscape'], function (Player, Input, Landscape) {
   /** 
     A module representing the client
     @exports Client
@@ -138,7 +138,7 @@
     var directionalLight = new THREE.DirectionalLight(0x666666);
     directionalLight.position = BaseGame.lightDirection.normalize();
     directionalLight.castShadow = true;
-    //scene.add(directionalLight);     
+    scene.add(directionalLight);     
                           
     /* In general objects know how to construct their own meshes.
        However they do not have responsibility for rendering themselves. I wish

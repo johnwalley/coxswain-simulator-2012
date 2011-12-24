@@ -5,7 +5,7 @@
 function RiverLine(inputPoints, landscape) {
   this.numberOfIterationsPer100Meters = 20;
   this.numberOfUpSmoothValues = 10;
-  this.riverTextureStrechFactor = 0.125;
+  this.riverTextureStretchFactor = 0.125;
   this.riverWidthScale = 13.25;
 
   this.points = []; // Array of RiverVertex
@@ -27,7 +27,7 @@ RiverLine.prototype.generateUTextureCoordinates = function () {
 
     // Uniform calculation of the texture coordinates for the riverway,
     // so it doesn't matter if there is a gap of 2 or 200 m
-    currentRiverUTexValue += this.riverTextureStrechFactor *
+    currentRiverUTexValue += this.riverTextureStretchFactor *
       (new THREE.Vector3().sub(this.points[(num + 1) % this.points.length].pos,
       this.points[num % this.points.length].pos).length());
   }
