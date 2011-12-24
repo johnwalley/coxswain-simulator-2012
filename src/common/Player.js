@@ -2,8 +2,8 @@
  * @author John Walley / http://www.walley.org.uk/
  */
  
- define(["common/ChaseCamera"], function (ChaseCamera) { 
-   /**
+define(["common/ChaseCamera"], function (ChaseCamera) { 
+  /**
    * Player helper class, holds all the current game properties:
    * Fuel, Health, Speed, Lives and Score.
    * Note: This class is just used in Cox Simulator 2012 and we only have
