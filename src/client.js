@@ -5,6 +5,8 @@
 /**
  * Main entry point for our game
  */
- 
-var game = new Client();
-game.run();
+
+require(["client/Client"], function (Client) {
+  var game = new Client();
+  game.run();
+});

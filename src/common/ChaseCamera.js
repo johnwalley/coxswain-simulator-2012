@@ -12,9 +12,9 @@
  * its all automatic!
  * @constructor
  */
-function ChaseCamera(input) {
+function ChaseCamera(input, landscape) {
   // Call the parent constructor
-  BoatPhysics.call(this, input);
+  BoatPhysics.call(this, input, landscape);
   
   this.cameraPos;
   

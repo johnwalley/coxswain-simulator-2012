@@ -6,14 +6,16 @@
  * Boat controller class for controlling the boat we cox.
  * This class is derived from the BasePlayer class, which stores all
  * important game values for us (game time, game over, etc.).
- * The ChaseCamera is then derived from this class and finally we got the
+ * The ChaseCamera is then derived from this class and finally we have the
  * Player class itself at the top, which is deriven from all these classes.
  * This way we can easily access everything from the Player class.
  * @constructor
  */
-function BoatPhysics(input) {
+function BoatPhysics(input, landscape) {
   // Call the parent constructor
   BasePlayer.call(this);
+  
+  this.landscape = landscape;
   
   // Controls
   this.input = input;
@@ -227,12 +229,14 @@ BoatPhysics.prototype.update = function (delta) {
   var oldRiverSegmentNumber = this.riverSegmentNumber;
   
   // Where are we on the river?
-  var position = game.landscape.updateBoatRiverPosition(this.boatPos, this.riverSegmentNumber, this.riverSegmentPercent);
+  // FIXME: Isn't this a violation of encapsulation? Why should I know about game?
+  // We can cope with knowing landscape
+  var position = this.landscape.updateBoatRiverPosition(this.boatPos, this.riverSegmentNumber, this.riverSegmentPercent);
   
   this.riverSegmentNumber = position.riverSegmentNumber;
   this.riverSegmentPercent = position.riverSegmentPercent;
     
-  var riverMatrix = game.landscape.getRiverPositionMatrix(this.riverSegmentNumber, this.riverSegmentPercent);
+  var riverMatrix = this.landscape.getRiverPositionMatrix(this.riverSegmentNumber, this.riverSegmentPercent);
   
   var riverPos = riverMatrix.translation;
   
