@@ -1,4 +1,4 @@
-define(function () {
+define(['RiverLine', 'RiverData'], function (RiverLine, RiverData) {
   /** 
     A module representing the river
     @exports River

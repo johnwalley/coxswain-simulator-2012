@@ -2,7 +2,17 @@
  * @author John Walley / http://www.walley.org.uk/
  */
 
-define(['common/Player', 'client/Input', 'Landscape'], function (Player, Input, Landscape) {
+define([
+'common/Player', 
+'client/Input', 
+'Landscape', 
+'BaseGame', 
+'client/SkyBox', 
+'../../lib/Three.js', 
+'../../lib/Stats.js', 
+'../../lib/RequestAnimationFrame.js',
+'../../lib/socket.io.js'],
+function (Player, Input, Landscape, BaseGame, SkyBox) {
   /** 
     A module representing the client
     @exports Client
@@ -136,7 +146,7 @@ define(['common/Player', 'client/Input', 'Landscape'], function (Player, Input, 
     scene.add(ambientLight);
 
     var directionalLight = new THREE.DirectionalLight(0x666666);
-    directionalLight.position = BaseGame.lightDirection.normalize();
+    directionalLight.position = BaseGame.lightDirection;
     directionalLight.castShadow = true;
     scene.add(directionalLight);     
                           

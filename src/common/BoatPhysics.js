@@ -2,7 +2,7 @@
  * @author John Walley / http://www.walley.org.uk/
  */
  
-define(["common/BasePlayer"], function (BasePlayer) {  
+define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {  
   /**
    * Boat controller class for controlling the boat we cox.
    * This class is derived from the BasePlayer class, which stores all

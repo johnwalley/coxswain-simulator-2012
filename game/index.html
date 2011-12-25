@@ -4,18 +4,26 @@
     <meta charset="utf-8" />
     <title>Coxswain Simulator 2012</title>
     <style>
-      #container {
-      background: #000;
-    }
+      body {
+        background: #000;
+		margin: 0px;
+	  }
     </style>
+	<script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-23419412-3']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
   </head>
   <body>
     <div id="container">
     </div>
   </body>
-  <script src="js/Three.js"></script>
-  <script src="js/Stats.js"></script>
-  <script src="js/socket.io.js"></script>    
-  <script src="js/RequestAnimationFrame.js"></script>
-  <script src="../build/cox-sim.js"></script>  
+  <script data-main="js/client" src="js/require.js"></script>  
 </html>
