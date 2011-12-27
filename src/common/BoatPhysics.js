@@ -235,21 +235,24 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
     var oldRiverSegmentNumber = this.riverSegmentNumber;
     
   // Where are we on the river?
-  var position = game.landscape.updateBoatRiverPosition(this.boatPos, this.riverSegmentNumber, this.riverSegmentPercent);
+  var position = this.landscape.updateBoatRiverPosition(this.boatPos, this.riverSegmentNumber, this.riverSegmentPercent);
   
   this.riverSegmentNumber = position.riverSegmentNumber;
   this.riverSegmentPercent = position.riverSegmentPercent;
     
-  var riverMatrix = game.landscape.getRiverPositionMatrix(this.riverSegmentNumber, this.riverSegmentPercent);
+  var riverMatrix = this.landscape.getRiverPositionMatrix(this.riverSegmentNumber, this.riverSegmentPercent);
   
   // TODO: riverPos is coming back as the righthand bank (it should be the middle of the river)
   var riverPos = riverMatrix.translation;
   
   var scaledRiverRight = new THREE.Vector3(riverMatrix.right.x, riverMatrix.right.y, riverMatrix.right.z);
-  scaledRiverRight.multiplyScalar(2*13.25);
+  scaledRiverRight.multiplyScalar(2.5*13.25);
   
-  this.setBanks(new THREE.Vector3().copy(riverPos),
-                new THREE.Vector3().copy(riverPos).addSelf(riverMatrix.forward),
+  var scaledRiverLeft = new THREE.Vector3(riverMatrix.right.x, riverMatrix.right.y, riverMatrix.right.z);
+  scaledRiverLeft.multiplyScalar(-0.1*13.25);
+  
+  this.setBanks(new THREE.Vector3().add(riverPos, scaledRiverLeft),
+                new THREE.Vector3().add(riverPos, scaledRiverLeft).addSelf(riverMatrix.forward),
                 new THREE.Vector3().add(riverPos, scaledRiverRight),
                 new THREE.Vector3().add(riverPos, scaledRiverRight).addSelf(riverMatrix.forward));
   
@@ -266,7 +269,7 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
     var rightDist = distanceToLine(this.boatPos, this.bankLeft, this.nextBankLeft)-5;
     
     if ((leftDist < 1) || (rightDist < 1)) {
-      this.speed = -10*this.speed;
+      this.speed = -2*this.speed;
     }
     
   }

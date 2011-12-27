@@ -2,7 +2,7 @@
  * @author John Walley / http://www.walley.org.uk/
  */
 
-define(function () {
+define(['../lib/Three.js'], function () {
   /** 
     A module representing data tied to a particular river, i.e. its course
     @exports RiverData
