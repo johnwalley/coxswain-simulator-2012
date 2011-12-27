@@ -95,13 +95,26 @@ define(['RiverLine', 'RiverData'], function (RiverLine, RiverData) {
       riverSegmentPercent = 1;
     }
     
+
     var pointPercent = riverSegmentPercent;
     var num = riverSegmentNumber;
     
+    // Get the 4 required points for the catmull rom spline
+    p1 = this.points[num - 1];
+    p2 = this.points[num];
+    p3 = this.points[num + 1];
+    p4 = this.points[num + 2];
+
+    var interpolatedPos = new THREE.Spline([p1.pos, p2.pos, p3.pos, p4.pos]).getPoint(pointPercent);
+    var interpolatedDir = new THREE.Spline([p1.dir, p2.dir, p3.dir, p4.dir]).getPoint(pointPercent);
+    var interpolatedRight = new THREE.Spline([p1.right, p2.right, p3.right, p4.right]).getPoint(pointPercent);
+    var interpolatedUp = new THREE.Spline([p1.up, p2.up, p3.up, p4.up]).getPoint(pointPercent);
+    
     return {
-      right: new THREE.Vector3(0, 0, 0),
-      forward: new THREE.Vector3(0, 0, 0),
-      translation: new THREE.Vector3(0,0,0)
+      right: interpolatedRight,
+      up: interpolatedUp,
+      forward: interpolatedDir,
+      translation: interpolatedPos
     }
   }
 
