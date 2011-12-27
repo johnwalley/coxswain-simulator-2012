@@ -50,6 +50,7 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     this.mode = Client.MULTIPLAYER;
     this.opponent = new Player();
     this.opponent.boatPos = this.player.boatPos.clone();
+    this.opponent.boatPos.x -= 4;
     
     // Test connection to server
     this.socket = io.connect('http://localhost:27960');
@@ -67,13 +68,30 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
       
     // Chrome
     this.stats = new Stats();
+    
+    // Diagnostic GUI
+    // http://workshop.chromeexperiments.com/examples/gui
     this.gui = new dat.GUI();
     
-    this.gui.add(this.player, 'speed').listen();
-    this.gui.add(this.player.boatPos, 'x').listen();
-    this.gui.add(this.player.boatPos, 'z').listen();
-    this.gui.add(this.player, 'boatAngle').name('Boat Angle').listen();
-
+    var f1 = this.gui.addFolder('Boat');
+    
+    f1.add(this.player, 'speed').listen();
+    f1.add(this.player.boatPos, 'x').listen();
+    f1.add(this.player.boatPos, 'z').listen();
+    f1.add(this.player, 'boatAngle').name('Boat Angle').listen();
+    f1.open();
+    
+    var f2 = this.gui.addFolder('Camera');
+    
+    f2.add(this.camera.position, 'x').listen();
+    f2.add(this.camera.position, 'z').listen();
+    f2.open();
+    
+    var f3 = this.gui.addFolder('River');
+    
+    f3.add(this.player, 'riverSegmentNumber').listen();
+    f3.open();    
+    
     this.stats.update();
   
   }
@@ -110,6 +128,8 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     this.camera.lookAt(this.player.lookAtPos);
     this.camera.position.addSelf(this.player.lastCameraWobble);
     
+    this.lightMesh.rotation.y = -this.player.boatAngle;
+    
     this.skyBox.target = this.player.boatDir;
   }
 
@@ -145,7 +165,7 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
 
     // Main scene. Holds river, landscape and player model
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x000000, 0.01);
+    scene.fog = new THREE.FogExp2(0x000033, 0.01);
 
     // TODO: Transition to z axis being up
     //camera.up = THREE.Vector3(0, 1, 0);
@@ -154,7 +174,7 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     scene.add(this.camera);
     
     // Add ambient light
-    var ambientLight = new THREE.AmbientLight(0xaabbcc);
+    var ambientLight = new THREE.AmbientLight(0x554422);
     scene.add(ambientLight);
 
     var directionalLight = new THREE.DirectionalLight(0x666666);
@@ -186,21 +206,21 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     pointLight.position = this.player.boatPos;
     scene.add(pointLight);
     
-    sphere = new THREE.SphereGeometry(8, 16, 8, 1);
-    lightMesh = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({color: 0xff1111}));
-    lightMesh.scale.set(0.05, 0.05, 0.05);
+    sphere = new THREE.CubeGeometry(8, 1, 1.5, 4, 1, 2);
+    lightMesh = new THREE.Mesh(sphere, new THREE.MeshPhongMaterial({color: 0xff0000}));
+    lightMesh.scale.set(0.5, 0.5, 0.5);
     lightMesh.position = pointLight.position;
     scene.add(lightMesh);
 
-    pointLight = new THREE.PointLight(0x0000ff, 1, 100);
+    pointLight = new THREE.PointLight(0x0000aa, 1, 100);
     pointLight.position = this.opponent.boatPos;
     scene.add(pointLight);
     
-    sphere = new THREE.SphereGeometry(8, 16, 8, 1);
-    lightMesh = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({color: 0x0000ff}));
-    lightMesh.scale.set(0.05, 0.05, 0.05);
-    lightMesh.position = pointLight.position;
-    scene.add(lightMesh);
+    sphere = new THREE.CubeGeometry(8, 1, 1.5, 4, 1, 2);
+    var lightMesh2 = new THREE.Mesh(sphere, new THREE.MeshPhongMaterial({color: 0x0000ff}));
+    lightMesh2.scale.set(0.5, 0.5, 0.5);
+    lightMesh2.position = pointLight.position;
+    scene.add(lightMesh2);
     
     scene.add(this.camera);
     

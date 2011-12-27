@@ -40,7 +40,7 @@ define(["common/BoatPhysics"], function (BoatPhysics) {
   ChaseCamera.prototype.update = function (delta) {
     BoatPhysics.prototype.update.call(this, delta);
 
-    this.updateView();
+    this.updateView(delta);
   }
 
   ChaseCamera.prototype.setCameraPosition = function (cameraPos) {
@@ -48,7 +48,7 @@ define(["common/BoatPhysics"], function (BoatPhysics) {
     this.cameraLookVector = new THREE.Vector3().sub(this.lookAtPos, this.cameraPos);
   }
 
-  ChaseCamera.prototype.updateView = function () {
+  ChaseCamera.prototype.updateView = function (delta) {
     // This function is an abomination of misunderstanding and hacks. Do better!
 
     this.cameraLookVector = this.boatDir.clone();
@@ -60,7 +60,7 @@ define(["common/BoatPhysics"], function (BoatPhysics) {
     // Is the camera wobbling?
     if (this.cameraWobbleTimeout > 0) {
       // This should pick up on the frametime
-      this.cameraWobbleTimeout -= 1/60;
+      this.cameraWobbleTimeout -= delta;
       if (this.cameraWobbleTimeout < 0) {
         this.cameraWobbleTimeout = 0;
       }
@@ -70,9 +70,11 @@ define(["common/BoatPhysics"], function (BoatPhysics) {
     // and if in game (check if we're zooming in at start)
     if (this.cameraWobbleTimeout > 0) {
       var effectStrength = 0.1 * this.cameraWobbleFactor * (this.cameraWobbleTimeout / this.maxCameraWobbleTimeout);
-      this.lastCameraWobble.multiplyScalar(0.8).addSelf(new THREE.Vector3(Math.random(), 0, Math.random()).normalize().multiplyScalar(effectStrength));
+      this.lastCameraWobble = (new THREE.Vector3(Math.random()-0.5, 0, Math.random()-0.5).normalize().multiplyScalar(effectStrength));
     }
-    
+    else {
+      this.lastCameraWobble.set(0, 0, 0);
+    }    
     
   }
   

@@ -67,7 +67,7 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
     this.lastAccelerationResult = 0;
     
     //this.boatPos = boatPosition;
-    this.boatPos = new THREE.Vector3(75, 0, 125);
+    this.boatPos = new THREE.Vector3(75, 1, 125);
     this.boatAngle = 0.95;
     this.boatUp = new THREE.Vector3(0, 1, 0);
     
@@ -175,7 +175,7 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
       this.rotationChange = -maxRot;  
     }
     
-    this.boatAngle -= this.rotationChange;
+    this.boatAngle -= this.rotationChange % (2*Math.PI);
     
     // Handle speed
     var newAccelerationForce = 0.0;

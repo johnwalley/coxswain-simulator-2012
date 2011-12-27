@@ -1,1 +1,2 @@
-java -jar D:\Development\Web\github\coxswain-simulator-2012\utils\compiler\compiler.jar --language_in=ECMASCRIPT5 --js=../src/TangentVertex.js --js=../src/client/SkyBox.js --js=../src/RiverData.js --js=../src/RiverVertex.js --js=../src/RiverLine.js --js=../src/River.js --js=../src/Landscape.js --js=../src/Input.js --js=../src/BaseGame.js --js=../src/BasePlayer.js --js=../src/BoatPhysics.js --js=../src/ChaseCamera.js --js=../src/Player.js --js=../src/client/Client.js --js=../src/Program.js --js_output_file=../build/cox-sim.js
+nodejs\node nodejs/node_modules/requirejs/bin/r.js -o app.build.js
+copy ..\build\client.js ..\game\js\client.js
