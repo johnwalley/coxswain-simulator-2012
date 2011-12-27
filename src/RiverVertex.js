@@ -19,18 +19,19 @@ define(['TangentVertex'], function (TangentVertex) {
     this.up = up || THREE.Vector3(0,1,0);
     this.dir = dir || THREE.Vector3(0,0,1);
     this.uv = uv || THREE.Vector2(0,0); 
-    this.riverWidth = 64.0;
+    this.riverWidth = 16.0;
+    this.riverWidthScale = 1.0;
   }
 
   RiverVertex.prototype = {
     get leftTangentVertex() {
-      return new TangentVertex(new THREE.Vector3().sub(this.pos, new THREE.Vector3().copy(this.right).divideScalar(2/(this.riverWidth*this.roadWidthScale))),
+      return new TangentVertex(new THREE.Vector3().sub(this.pos, new THREE.Vector3().copy(this.right).divideScalar(2/(this.riverWidth*this.riverWidthScale))),
       new THREE.Vector2(this.uv.x, 0), 
       this.up, this.right);
     },
     get rightTangentVertex() {
-      return new TangentVertex(new THREE.Vector3().add(this.pos, new THREE.Vector3().copy(this.right).divideScalar(2/this.riverWidth)),
-      new THREE.Vector2(this.uv.x, (this.riverWidth*this.roadWidthScale)), 
+      return new TangentVertex(new THREE.Vector3().add(this.pos, new THREE.Vector3().copy(this.right).divideScalar(2/(this.riverWidth*this.riverWidthScale))),
+      new THREE.Vector2(this.uv.x, (this.riverWidth)), 
       this.up, this.right);
     },
     get middleTangentVertex() {
@@ -39,13 +40,13 @@ define(['TangentVertex'], function (TangentVertex) {
       this.up, this.right);
     },
       get middleLeftTangentVertex() {
-      return new TangentVertex(new THREE.Vector3().sub(this.pos, new THREE.Vector3().copy(this.right).divideScalar(4/(this.riverWidth*this.roadWidthScale))),
+      return new TangentVertex(new THREE.Vector3().sub(this.pos, new THREE.Vector3().copy(this.right).divideScalar(4/(this.riverWidth*this.riverWidthScale))),
       new THREE.Vector2(this.uv.x, this.riverWidth/4), 
       this.up, this.right);
     },
     get middleRightTangentVertex() {
-      return new TangentVertex(new THREE.Vector3().add(this.pos, new THREE.Vector3().copy(this.right).divideScalar(4/(this.riverWidth*this.roadWidthScale))),
-      new THREE.Vector2(this.uv.x, this.riverWidth/4), 
+      return new TangentVertex(new THREE.Vector3().add(this.pos, new THREE.Vector3().copy(this.right).divideScalar(4/(this.riverWidth*this.riverWidthScale))),
+      new THREE.Vector2(this.uv.x, this.riverWidth*3/4), 
       this.up, this.right);
     }
   }

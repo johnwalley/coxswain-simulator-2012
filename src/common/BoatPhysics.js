@@ -67,8 +67,8 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
     this.lastAccelerationResult = 0;
     
     //this.boatPos = boatPosition;
-    this.boatPos = new THREE.Vector3(90, 0, 125);
-    this.boatAngle = 1.1;
+    this.boatPos = new THREE.Vector3(75, 0, 125);
+    this.boatAngle = 0.95;
     this.boatUp = new THREE.Vector3(0, 1, 0);
     
     this.virtualRotationAmount = 0.0;
@@ -134,7 +134,7 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
       this.rotationChange = 0;
     }
     
-    this.rotationChange = -this.input.mouseX * moveFactor / 2.5;
+    this.rotationChange -= this.input.mouseX * moveFactor / 5.5;
     
     var maxRot = this.maxRotationPerSec * moveFactor * 1.25;
     
@@ -161,9 +161,9 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
     {
       // If we are staying or moving very slowly, limit rotation!
       if (Math.abs(this.speed) < 5.0) {
-        this.rotationChange *= 0.67 + 0.33 * this.speed / 100.0;
+        this.rotationChange *= 2 + 0.33 * this.speed / 10.0;
       } else {
-        this.rotationChange *= 1.0 + (this.speed - 10) / 10.0;
+        this.rotationChange *= 1.0 + (this.speed - 5) / 10.0;
       }
     }    
     
@@ -248,14 +248,12 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
   // TODO: riverPos is coming back as the righthand bank (it should be the middle of the river)
   var riverPos = riverMatrix.translation;
   
-  var scaledRiverRight = new THREE.Vector3(riverMatrix.right.x, riverMatrix.right.y, riverMatrix.right.z);
-  scaledRiverRight.multiplyScalar(2.5*13.25);
-  
-  var scaledRiverLeft = new THREE.Vector3(riverMatrix.right.x, riverMatrix.right.y, riverMatrix.right.z);
-  scaledRiverLeft.multiplyScalar(-0.1*13.25);
-  
-  this.setBanks(new THREE.Vector3().add(riverPos, scaledRiverLeft),
-                new THREE.Vector3().add(riverPos, scaledRiverLeft).addSelf(riverMatrix.forward),
+  var scaledRiverRight = new THREE.Vector3().copy(riverMatrix.right);
+  // Where do we get riverWidth from (32)?
+  scaledRiverRight.multiplyScalar(8);
+
+  this.setBanks(new THREE.Vector3().sub(riverPos, scaledRiverRight),
+                new THREE.Vector3().sub(riverPos, scaledRiverRight).addSelf(riverMatrix.forward),
                 new THREE.Vector3().add(riverPos, scaledRiverRight),
                 new THREE.Vector3().add(riverPos, scaledRiverRight).addSelf(riverMatrix.forward));
   

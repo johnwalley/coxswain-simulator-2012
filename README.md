@@ -24,9 +24,10 @@ A crash course in JavaScript development - using some neat libraries/frameworks 
 * RequireJS
 * node.js
 * socket.io
-* Closure
 
-Initially ased on <a href="http://exdream.com/XnaRacingGame/">XNA Racing Game</a> a complete XNA Game Studio Express game.
+Initially based on <a href="http://exdream.com/XnaRacingGame/">XNA Racing Game</a> a complete XNA Game Studio Express game.
+
+Multiplayer inspired by <a href="http://headtoheadracing.appspot.com/">Head to Head Racing</a>.
 
 ## References
 

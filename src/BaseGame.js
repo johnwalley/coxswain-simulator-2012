@@ -2,7 +2,7 @@
  * @author John Walley / http://www.walley.org.uk/
  */
 
-define(function () {
+define(['../lib/Three.js'], function () {
   /** 
     A module representing common properties of the game
     @exports BaseGame
@@ -15,15 +15,15 @@ define(function () {
    */
   var BaseGame = (function () {
     return {
-      fieldOfView: Math.PI/2,
+      fieldOfView: 90,
       nearPlane: 0.5,
       farPlane: 2000,
       
       // These can change, e.g. the user could resize the window
       width: window.innerWidth,
-      height: window.innerWidth,
+      height: window.innerHeight,
       
-      lightDirection: {x: 0.2, y: 1, z: 1},
+      lightDirection: new THREE.Vector3(0.2, 1, 0.5).normalize(),
       
       elapsedTimeThisFrameInMs: 10,
       totalTimeMs: 0,

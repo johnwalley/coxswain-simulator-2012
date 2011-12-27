@@ -5,7 +5,7 @@
 define(function () {
   /** 
     A module representing a tangent vertex, i.e. position, UV, normal and tangent
-    @exports Client
+    @exports TangentVertex
     @version 1.0
    */
    

@@ -27,14 +27,14 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
   function Client() {
 
     this.drawMesh = {
-      landscape: false,
+      landscape: true,
       river: true,
       boat: true
     };
   
     // Client only properties, rendering, input, sound, etc.
     this.input = new Input();
-    this.camera = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 0.5, 8000 );
+    this.camera = new THREE.PerspectiveCamera( BaseGame.fieldOfView, BaseGame.width / BaseGame.height, BaseGame.nearPlane, BaseGame.farPlane );
     
     // Set up renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -71,11 +71,9 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     
     this.gui.add(this.player, 'speed').listen();
     this.gui.add(this.player.boatPos, 'x').listen();
-    this.gui.add(this.player.boatPos, 'y').listen();
     this.gui.add(this.player.boatPos, 'z').listen();
-    
-    
-    
+    this.gui.add(this.player, 'boatAngle').name('Boat Angle').listen();
+
     this.stats.update();
   
   }
@@ -112,12 +110,7 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     this.camera.lookAt(this.player.lookAtPos);
     this.camera.position.addSelf(this.player.lastCameraWobble);
     
-    //this.pointLight.position = this.player.boatPos;
-    //this.lightMesh.position = this.player.boatPos;
-    
-    this.skyBox.target.x = -Math.cos(this.camera.rotation.y);
-    this.skyBox.target.y = 0;
-    this.skyBox.target.z = -Math.sin(this.camera.rotation.y);
+    this.skyBox.target = this.player.boatDir;
   }
 
   /**

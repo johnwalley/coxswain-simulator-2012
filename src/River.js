@@ -216,7 +216,7 @@ define(['RiverLine', 'RiverData'], function (RiverLine, RiverData) {
     texture.wrapS = 0;
     texture.wrapT = 0;
     
-    material = new THREE.MeshPhongMaterial( { map: texture, color: 0x2244bb, ambient: 0x2244bb, specular: 0xffffff, perPixel: true, transparent: true, opacity: 0.7 } );  
+    material = new THREE.MeshPhongMaterial( { map: texture, color: 0xffffff, color: 0x2244bb, ambient: 0x2244bb, specular: 0xffffff, perPixel: true, transparent: true, opacity: 0.7 } );  
     //material = new THREE.MeshBasicMaterial( { map: texture, transparent: true, opacity: 0.7 } );  
     
     mesh = new THREE.Mesh(geometry, material);
