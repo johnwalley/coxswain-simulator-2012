@@ -67,7 +67,7 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
     this.lastAccelerationResult = 0;
     
     //this.boatPos = boatPosition;
-    this.boatPos = new THREE.Vector3(90, 1, 125);
+    this.boatPos = new THREE.Vector3(90, 0, 125);
     this.boatAngle = 1.1;
     this.boatUp = new THREE.Vector3(0, 1, 0);
     
@@ -85,6 +85,9 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
   BoatPhysics.prototype = {
     get lookAtPos() {
       return new THREE.Vector3().add(this.boatPos, new THREE.Vector3().copy(this.boatUp).multiplyScalar(this.boatHeight));
+    },
+    get carRight() {
+      return new THREE.Vector3().cross(this.boatDir, this.boatUp);
     },
     get boatDir() {
       return new THREE.Vector3(Math.cos(this.boatAngle), 0, Math.sin(this.boatAngle));
@@ -265,11 +268,52 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
   }
 
   BoatPhysics.prototype.checkForCollisions = function() {
-    var leftDist = distanceToLine(this.boatPos, this.bankRight, this.nextBankRight)-5;
-    var rightDist = distanceToLine(this.boatPos, this.bankLeft, this.nextBankLeft)-5;
+    
+    // Calculate normals for the bank with the help of the next bank posiion and river normal
+    
+    var bankLeftNormal = THREE.Vector3(1, 0, 0);
+    var bankRightNormal = THREE.Vector3(-1, 0, 0);
+    
+    var leftDist = distanceToLine(this.boatPos, this.bankRight, this.nextBankRight);
+    var rightDist = distanceToLine(this.boatPos, this.bankLeft, this.nextBankLeft);
     
     if ((leftDist < 1) || (rightDist < 1)) {
-      this.speed = -2*this.speed;
+      // Force boat back on to the river
+      // Calculate collision angle
+      var collisionAngle = Math.acos(this.boatRight, bankLeftNormal);
+      
+      if (Math.abs(collisionAngle) < Math.PI / 4) {
+        // Play crash sound
+        
+        this.rotateBoatAfterCollision = - collisionAngle / 1.5;
+        this.speed *= 0.93;
+        // Zoom in?
+      }
+      
+      this.wobbleCamera(0.75 * this.speed);
+      
+    } else if (Math.abs(collisionAngle) < Math.PI * 3 / 4) {
+      // If 90-45 degrees it's a frontal crash
+      // Stop boat and wobble camera
+      if (Math.abs(collisionAngle) < Math.PI / 3) {
+        this.rotateBoatAfterCollision = collisionAngle / 3;
+      }
+      
+      // Play crash sound
+      
+      // Shake camera
+      this.wobbleCamera(5 * this.speed);
+      
+      // Stop the boat!
+      this.speed = 0;
+    }
+    
+    // For all collisions kill the current boat force
+    this.boatForce = new THREE.Vector3(0, 0, 0);
+    
+    if (leftDist > 0) {
+      //correctBoatPosValue = leftDist + 0.01 + 0.1;
+      //this.boatPos.addSelf(correctBoatPosValue);
     }
     
   }

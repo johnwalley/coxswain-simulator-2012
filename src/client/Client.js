@@ -8,8 +8,9 @@ define([
 'Landscape', 
 'BaseGame', 
 'client/SkyBox', 
+'../../lib/dat.gui.js', 
 '../../lib/Three.js', 
-'../../lib/Stats.js', 
+'../../lib/Stats.js',
 '../../lib/RequestAnimationFrame.js',
 '../../lib/socket.io.js'],
 function (Player, Input, Landscape, BaseGame, SkyBox) {
@@ -25,10 +26,15 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
    */
   function Client() {
 
+    this.drawMesh = {
+      landscape: false,
+      river: true,
+      boat: true
+    };
+  
     // Client only properties, rendering, input, sound, etc.
     this.input = new Input();
     this.camera = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 0.5, 8000 );
-    this.stats = new Stats();
     
     // Set up renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -58,6 +64,20 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     }).bind(this));  
     
     this.socket.emit('join', { name: 'marv' });
+      
+    // Chrome
+    this.stats = new Stats();
+    this.gui = new dat.GUI();
+    
+    this.gui.add(this.player, 'speed').listen();
+    this.gui.add(this.player.boatPos, 'x').listen();
+    this.gui.add(this.player.boatPos, 'y').listen();
+    this.gui.add(this.player.boatPos, 'z').listen();
+    
+    
+    
+    this.stats.update();
+  
   }
   
   Client.prototype = {
@@ -88,8 +108,9 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
       this.socket.emit('state', {x:this.player.boatPos.x, y:this.player.boatPos.y, z:this.player.boatPos.z});      
     }
     
-    this.camera.position = this.player.cameraPos;
-    this.camera.lookAt(this.player.boatPos);
+    this.camera.position = this.player.cameraPos.clone();
+    this.camera.lookAt(this.player.lookAtPos);
+    this.camera.position.addSelf(this.player.lastCameraWobble);
     
     //this.pointLight.position = this.player.boatPos;
     //this.lightMesh.position = this.player.boatPos;
@@ -97,8 +118,6 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     this.skyBox.target.x = -Math.cos(this.camera.rotation.y);
     this.skyBox.target.y = 0;
     this.skyBox.target.z = -Math.sin(this.camera.rotation.y);
-    
-    this.stats.update();
   }
 
   /**
@@ -153,14 +172,16 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     /* In general objects know how to construct their own meshes.
        However they do not have responsibility for rendering themselves. I wish
        to decouple the renderer as much as possible from the physics engine */
-                          
-    // Generate landscape and add to scene
-    leftBankMesh = this.landscape.generateMesh()[0];
-    //leftBankMesh.castShadow = true;
-    rightBankMesh = this.landscape.generateMesh()[1];
-    //rightBankMesh.castShadow = true;    
-    scene.add(leftBankMesh);
-    scene.add(rightBankMesh);
+    
+    if (this.drawMesh.landscape) {
+      // Generate landscape and add to scene
+      leftBankMesh = this.landscape.generateMesh()[0];
+      //leftBankMesh.castShadow = true;
+      rightBankMesh = this.landscape.generateMesh()[1];
+      //rightBankMesh.castShadow = true;    
+      scene.add(leftBankMesh);
+      scene.add(rightBankMesh);
+    }
     
     // Generate river and add to scene
     riverMesh = this.landscape.river.generateMesh();
@@ -193,6 +214,8 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     var skyBox = new SkyBox();
     
     skyBox.scene.add(skyBox.generateMesh('night/fade/'));
+    
+    skyBox.scene.add(skyBox.camera);
     
     this.scene = scene;  
     this.skyBox = skyBox;
