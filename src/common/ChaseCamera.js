@@ -19,8 +19,11 @@ define(["common/BoatPhysics"], function (BoatPhysics) {
     
     this.cameraPos;
     
-    this.cameraDistance = 10;
-    this.cameraLookVector;
+    this.cameraDistance = 5;
+    this.wannaCameraDistance = 5;
+    
+    this.cameraLookVector = new THREE.Vector3(1, 0, 0);
+    this.wannaCameraLookVector;
     
     this.maxCameraWobbleTimeout = 0.7;
     this.cameraWobbleTimeout = 0;
@@ -28,7 +31,7 @@ define(["common/BoatPhysics"], function (BoatPhysics) {
     
     this.lastCameraWobble = new THREE.Vector3(0, 0, 0);
       
-    this.setCameraPosition(new THREE.Vector3().add(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 10, 10)));
+    this.setCameraPosition(new THREE.Vector3().add(this.boatPos, new THREE.Vector3(0, -100, 10)));
   }
 
   // Inherit BoatPhysics
@@ -51,11 +54,17 @@ define(["common/BoatPhysics"], function (BoatPhysics) {
   ChaseCamera.prototype.updateView = function (delta) {
     // This function is an abomination of misunderstanding and hacks. Do better!
 
-    this.cameraLookVector = this.boatDir.clone();
+    this.cameraDistance = (0.9 * this.cameraDistance) +
+                          (0.1 * this.wannaCameraDistance);
     
-    this.cameraLookVector.multiplyScalar(-this.cameraDistance);
-
-    this.cameraPos = new THREE.Vector3().add(this.lookAtPos, this.cameraLookVector).addSelf(this.boatUp).addSelf(this.boatUp).addSelf(this.boatUp);
+    //this.cameraLookVector = this.boatDir.clone();    
+    this.wannaCameraLookVector = this.boatDir.clone().multiplyScalar(-this.cameraDistance);;
+                     
+    this.cameraLookVector = new THREE.Vector3().add(
+                              this.cameraLookVector.clone().multiplyScalar(0.9),
+                              this.wannaCameraLookVector.clone().multiplyScalar(0.1));
+    
+    this.cameraPos = new THREE.Vector3().add(this.lookAtPos, this.cameraLookVector).addSelf(this.boatUp).addSelf(this.boatUp);
   
     // Is the camera wobbling?
     if (this.cameraWobbleTimeout > 0) {

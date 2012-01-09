@@ -117,7 +117,6 @@ define(function () {
     this.domElement.addEventListener('mouseup', this.onMouseUp.bind(this), false );        
     this.domElement.addEventListener('keydown', this.onKeyDown.bind(this), false);
     this.domElement.addEventListener('keyup', this.onKeyUp.bind(this), false);
-
   }
 
   return Input;

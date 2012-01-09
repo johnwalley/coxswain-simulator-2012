@@ -62,7 +62,7 @@ function (Player, Input, SoundManager, Landscape, BaseGame, SkyBox) {
     
     this.player = new Player(this.input, this.landscape); // TODO: Decouple input from physics - make event driven?
     
-    this.mode = Client.MULTIPLAYER;
+    this.mode = Client.SINGLEPLAYER;
     this.opponent = new Player();
     this.opponent.boatPos = this.player.boatPos.clone();
     this.opponent.boatPos.x -= 4;
@@ -100,14 +100,14 @@ function (Player, Input, SoundManager, Landscape, BaseGame, SkyBox) {
     
     var f2 = this.gui.addFolder('Camera');
     
-    f2.add(this.camera.position, 'x').listen();
-    f2.add(this.camera.position, 'z').listen();
+    f2.add(this.player.cameraPos, 'x').listen();
+    f2.add(this.player.cameraPos, 'z').listen();
     //f2.open();
     
     var f3 = this.gui.addFolder('River');
     
     f3.add(this.player, 'riverSegmentNumber').listen();
-    //f3.open();    
+    f3.open();    
     
     this.stats.update();
   
