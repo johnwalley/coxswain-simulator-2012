@@ -21,11 +21,11 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
     // Controls
     this.input = input;
     
-    this.boatMass = 1000;
+    this.boatMass = 1;
     this.gravity = 9.81;
     
-    this.defaultMaxSpeed = 1000 * this.mphToMeterPerSec;
-    this.maxPossibleSpeed = 1000 * this.mphToMeterPerSec;
+    this.defaultMaxSpeed = 30 * this.mphToMeterPerSec;
+    this.maxPossibleSpeed = 30 * this.mphToMeterPerSec;
     
     this.defaultMaxAccelerationPerSec = 0.2;
     this.maxAcceleration = 5.75;
@@ -134,7 +134,8 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
       this.rotationChange = 0;
     }
     
-    this.rotationChange -= this.input.mouseX * moveFactor / 5.5;
+    // TODO: If we're going mouse only for steering then this needs to be improved and the magic number factored out into the sensitivity var
+    this.rotationChange -= this.input.mouseX * moveFactor / 2000;
     
     var maxRot = this.maxRotationPerSec * moveFactor * 1.25;
     
@@ -160,10 +161,11 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
     else
     {
       // If we are staying or moving very slowly, limit rotation!
-      if (Math.abs(this.speed) < 5.0) {
+      var speedThreshold = 5;
+      if (Math.abs(this.speed) < speedThreshold) {
         this.rotationChange *= 2 + 0.33 * this.speed / 10.0;
       } else {
-        this.rotationChange *= 1.0 + (this.speed - 5) / 10.0;
+        this.rotationChange *= 2.0 + (this.speed - speedThreshold) / 10.0;
       }
     }    
     
@@ -180,10 +182,12 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
     // Handle speed
     var newAccelerationForce = 0.0;
     
+    moveFactor = 0.05;
+    
     if (this.input.moveForward) {
-      newAccelerationForce += this.maxAccelerationPerSec * moveFactor;
+      newAccelerationForce += 100*this.maxAccelerationPerSec * moveFactor;
     } else if (this.input.moveBackward) {
-      newAccelerationForce -=  this.maxAccelerationPerSec * moveFactor;  
+      newAccelerationForce -=  100 * this.maxAccelerationPerSec * moveFactor;  
     }
      
     // Limit acceleration (but drive as fast forwards as possible if we
@@ -207,7 +211,7 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
     var speedChangeVector = new THREE.Vector3().copy(this.boatForce).divideScalar(this.boatMass);
     
     if (this.isBoatOnWater && speedChangeVector.length() > 0) {
-      var speedApplyFactor = speedChangeVector.normalize().dot(this.boatDir);
+      var speedApplyFactor = speedChangeVector.clone().normalize().dot(this.boatDir);
       if (speedApplyFactor > 1) {
         speedApplyFactor = 1;
       }
@@ -275,10 +279,12 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
     var leftDist = distanceToLine(this.boatPos, this.bankRight, this.nextBankRight);
     var rightDist = distanceToLine(this.boatPos, this.bankLeft, this.nextBankLeft);
     
-    if ((leftDist < 1) || (rightDist < 1)) {
+    if ((leftDist < 2) || (rightDist < 2)) {
       // Force boat back on to the river
       // Calculate collision angle
       var collisionAngle = Math.acos(this.boatRight, bankLeftNormal);
+      
+      this.speed *= 0.95;
       
       if (Math.abs(collisionAngle) < Math.PI / 4) {
         // Play crash sound

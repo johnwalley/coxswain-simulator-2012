@@ -23,8 +23,8 @@ define(function () {
       this.viewHalfX = window.innerWidth / 2;
       this.viewHalfY = window.innerHeight / 2;
     } else {
-      this.viewHalfX = this.domElement.offsetWidth / 2;
-      this.viewHalfY = this.domElement.offsetHeight / 2;
+      this.viewHalfX = this.domElement.width / 2;
+      this.viewHalfY = this.domElement.height / 2;
       this.domElement.setAttribute( 'tabindex', -1 );
     }  
 
@@ -43,7 +43,41 @@ define(function () {
       }
 
     };
+    
+    this.onMouseDown = function ( event ) {
+      if ( this.domElement !== document ) {
 
+        this.domElement.focus();
+
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      switch ( event.button ) {
+
+        case 0: this.moveForward = true; break;
+        case 2: this.moveBackward = true; break;
+
+      }
+      this.mouseDragOn = true;
+    };
+
+    this.onMouseUp = function ( event ) {
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      switch ( event.button ) {
+
+        case 0: this.moveForward = false; break;
+        case 2: this.moveBackward = false; break;
+
+      }
+
+      this.mouseDragOn = false;
+
+    };
     
     this.onKeyDown = function (event) {
       switch(event.keyCode) {   
@@ -77,7 +111,10 @@ define(function () {
       }
     };  
     
-    this.domElement.addEventListener('mousemove', this.onMouseMove.bind(this), false );    
+    // Wire up listeners
+    this.domElement.addEventListener('mousemove', this.onMouseMove.bind(this), false );
+    this.domElement.addEventListener('mousedown', this.onMouseDown.bind(this), false );    
+    this.domElement.addEventListener('mouseup', this.onMouseUp.bind(this), false );        
     this.domElement.addEventListener('keydown', this.onKeyDown.bind(this), false);
     this.domElement.addEventListener('keyup', this.onKeyUp.bind(this), false);
 

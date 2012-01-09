@@ -4,7 +4,8 @@
 
 define([
 'common/Player', 
-'client/Input', 
+'client/Input',
+'client/SoundManager',
 'Landscape', 
 'BaseGame', 
 'client/SkyBox', 
@@ -13,7 +14,7 @@ define([
 '../../lib/Stats.js',
 '../../lib/RequestAnimationFrame.js',
 '../../lib/socket.io.js'],
-function (Player, Input, Landscape, BaseGame, SkyBox) {
+function (Player, Input, SoundManager, Landscape, BaseGame, SkyBox) {
   /** 
     A module representing the client
     @exports Client
@@ -32,18 +33,32 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
       boat: true
     };
   
-    // Client only properties, rendering, input, sound, etc.
-    this.input = new Input();
-    this.camera = new THREE.PerspectiveCamera( BaseGame.fieldOfView, BaseGame.width / BaseGame.height, BaseGame.nearPlane, BaseGame.farPlane );
-    
+    this.clock = new THREE.Clock();
+    this.startTime = this.clock.elapsedTime;
+    this.elapsedTime = 0;
+
     // Set up renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    var container = document.getElementById("container");
+    this.renderer.setSize(container.clientWidth, 
+                          container.clientHeight);
+  
+    // Client only properties, rendering, input, sound, etc.
+    this.input = new Input(this.renderer.domElement);
+    this.camera = new THREE.PerspectiveCamera( BaseGame.fieldOfView, BaseGame.width / BaseGame.height, BaseGame.nearPlane, BaseGame.farPlane );
     
     this.level = 'cam';
 
     // Common properties, i.e. physics engine
     this.landscape = new Landscape(this.level);
     
+    this.sound = new SoundManager();
+
+    // Game screens stack
+    this.gameScreens = [];
+    
+    //this.gameScreens.push(new MainMenu());
+    //this.gameScreens.push(new SplashScreen());
     
     this.player = new Player(this.input, this.landscape); // TODO: Decouple input from physics - make event driven?
     
@@ -73,6 +88,8 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     // http://workshop.chromeexperiments.com/examples/gui
     this.gui = new dat.GUI();
     
+    this.gui.add(this, 'elapsedTime').name('Time').listen();
+    
     var f1 = this.gui.addFolder('Boat');
     
     f1.add(this.player, 'speed').listen();
@@ -85,12 +102,12 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     
     f2.add(this.camera.position, 'x').listen();
     f2.add(this.camera.position, 'z').listen();
-    f2.open();
+    //f2.open();
     
     var f3 = this.gui.addFolder('River');
     
     f3.add(this.player, 'riverSegmentNumber').listen();
-    f3.open();    
+    //f3.open();    
     
     this.stats.update();
   
@@ -98,7 +115,13 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
   
   Client.prototype = {
     SINGLEPLAYER: 1,
-    MULTIPLAYER: 2
+    MULTIPLAYER: 2,
+    get inMenu () {
+      return false;
+    },
+    get inGame () {
+      return true;
+    }
   }
 
   Client.prototype.run = function () {
@@ -116,6 +139,7 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
   Client.prototype.update = function () {
     // this.input.update();
     // this.sound.update();
+    this.elapsedTime = this.clock.elapsedTime - this.startTime;
     this.player.update(this.clock.getDelta());
     
     // Are we racing against someone?
@@ -143,6 +167,10 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
   }
 
   Client.prototype.render = function () {
+    // Handle current screen
+    //if (this.gameScreens.peek().render()) {
+    //  this.sound.play();
+    //}
     this.skyBox.camera.lookAt(this.skyBox.target);  
     this.renderer.render(this.skyBox.scene, this.skyBox.camera);  
     this.renderer.render(this.scene, this.camera);
@@ -155,7 +183,7 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
   Client.prototype.init = function () {
 
     // Initialise renderer
-    this.renderer.setSize( window.innerWidth, window.innerHeight );
+    //this.renderer.setSize( window.innerWidth, window.innerHeight );
     this.renderer.autoClear = false;
     this.renderer.shadowMapEnabled = true;
     
@@ -238,9 +266,7 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     
     this.stats.domElement.style.position = 'absolute';
     this.stats.domElement.style.top = '0px';
-    container.appendChild( this.stats.domElement );
-    
-    this.clock = new THREE.Clock();
+    //container.appendChild( this.stats.domElement );
   }
   
   return Client;
