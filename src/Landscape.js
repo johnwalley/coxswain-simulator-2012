@@ -66,14 +66,18 @@ define(['River'], function (River) {
     var landscapeLeftShape = new THREE.Shape( landscapeLeftPts );
     var landscapeRightShape = new THREE.Shape( landscapeRightPts );
     
-    var landscapeLeft3d = new THREE.ExtrudeGeometry( landscapeLeftShape, { amount: 10	} );
-    var landscapeRight3d = new THREE.ExtrudeGeometry( landscapeRightShape, { amount: 10	} );
+    var landscapeLeft3d = new THREE.ExtrudeGeometry( landscapeLeftShape, { amount: 10, bevelEnabled: false} );
+    var landscapeRight3d = new THREE.ExtrudeGeometry( landscapeRightShape, { amount: 10, bevelEnabled: false	} );
 
     var meshLeft = new THREE.Mesh(landscapeLeft3d, new THREE.MeshPhongMaterial({ color: 0x22aa33, ambient: 0x22aa33, specular: 0xffffff, perPixel: true }));
     var meshRight = new THREE.Mesh(landscapeRight3d, new THREE.MeshPhongMaterial({ color: 0x22aa33, ambient: 0x22aa33, specular: 0xffffff, perPixel: true }));
     
     meshLeft.rotation.set( Math.PI/2, 0, 0 );
     meshRight.rotation.set( Math.PI/2, 0, 0 );
+    
+    // Extrusion effectively pulls down so we move the mesh up to put the ground above the water level
+    meshLeft.position.set(0, 1, 0);
+    meshRight.position.set(0, 1, 0);
     
     return [meshLeft, meshRight];    
   }

@@ -18,9 +18,16 @@ If your luck is out then why not watch a video?
 
 <a href="http://www.youtube.com/watch?v=3Siv_VyzRfs"><img src="http://i4.ytimg.com/vi/3Siv_VyzRfs/default.jpg" alt="YouTube video"></a>
 
-This is my attempt at learning Javascript and WebGL at the same time!
+A crash course in JavaScript development - using some neat libraries/frameworks along the way:
 
-Based on <a href="http://exdream.com/XnaRacingGame/">XNA Racing Game</a> a complete XNA Game Studio Express game.
+* THREE.js
+* RequireJS
+* node.js
+* socket.io
+
+Initially based on <a href="http://exdream.com/XnaRacingGame/">XNA Racing Game</a> a complete XNA Game Studio Express game.
+
+Multiplayer inspired by <a href="http://headtoheadracing.appspot.com/">Head to Head Racing</a>.
 
 ## References
 
@@ -32,4 +39,5 @@ Based on <a href="http://exdream.com/XnaRacingGame/">XNA Racing Game</a> a compl
 Interesting stuff to get around to reading
 
 * [http://chandler.prallfamily.com/2011/12/constructive-solid-geometry-with-three-js/](Constructive solid geometry with Three.js)
+* [http://code.google.com/p/html5slides/](HTML5 Slides)
 

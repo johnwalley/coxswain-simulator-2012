@@ -2,7 +2,7 @@
  * @author John Walley / http://www.walley.org.uk/
  */
  
-define(["common/BasePlayer"], function (BasePlayer) {  
+define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {  
   /**
    * Boat controller class for controlling the boat we cox.
    * This class is derived from the BasePlayer class, which stores all
@@ -21,11 +21,11 @@ define(["common/BasePlayer"], function (BasePlayer) {
     // Controls
     this.input = input;
     
-    this.boatMass = 1000;
+    this.boatMass = 1;
     this.gravity = 9.81;
     
-    this.defaultMaxSpeed = 1000 * this.mphToMeterPerSec;
-    this.maxPossibleSpeed = 1000 * this.mphToMeterPerSec;
+    this.defaultMaxSpeed = 30 * this.mphToMeterPerSec;
+    this.maxPossibleSpeed = 30 * this.mphToMeterPerSec;
     
     this.defaultMaxAccelerationPerSec = 0.2;
     this.maxAcceleration = 5.75;
@@ -67,8 +67,8 @@ define(["common/BasePlayer"], function (BasePlayer) {
     this.lastAccelerationResult = 0;
     
     //this.boatPos = boatPosition;
-    this.boatPos = new THREE.Vector3(90, 1, 125);
-    this.boatAngle = 1.1;
+    this.boatPos = new THREE.Vector3(75, 1, 125);
+    this.boatAngle = 0.95;
     this.boatUp = new THREE.Vector3(0, 1, 0);
     
     this.virtualRotationAmount = 0.0;
@@ -85,6 +85,9 @@ define(["common/BasePlayer"], function (BasePlayer) {
   BoatPhysics.prototype = {
     get lookAtPos() {
       return new THREE.Vector3().add(this.boatPos, new THREE.Vector3().copy(this.boatUp).multiplyScalar(this.boatHeight));
+    },
+    get carRight() {
+      return new THREE.Vector3().cross(this.boatDir, this.boatUp);
     },
     get boatDir() {
       return new THREE.Vector3(Math.cos(this.boatAngle), 0, Math.sin(this.boatAngle));
@@ -131,7 +134,8 @@ define(["common/BasePlayer"], function (BasePlayer) {
       this.rotationChange = 0;
     }
     
-    this.rotationChange = -this.input.mouseX * moveFactor / 2.5;
+    // TODO: If we're going mouse only for steering then this needs to be improved and the magic number factored out into the sensitivity var
+    this.rotationChange -= this.input.mouseX * moveFactor / 2000;
     
     var maxRot = this.maxRotationPerSec * moveFactor * 1.25;
     
@@ -157,10 +161,11 @@ define(["common/BasePlayer"], function (BasePlayer) {
     else
     {
       // If we are staying or moving very slowly, limit rotation!
-      if (Math.abs(this.speed) < 5.0) {
-        this.rotationChange *= 0.67 + 0.33 * this.speed / 100.0;
+      var speedThreshold = 5;
+      if (Math.abs(this.speed) < speedThreshold) {
+        this.rotationChange *= 2 + 0.33 * this.speed / 10.0;
       } else {
-        this.rotationChange *= 1.0 + (this.speed - 10) / 10.0;
+        this.rotationChange *= 2.0 + (this.speed - speedThreshold) / 10.0;
       }
     }    
     
@@ -172,15 +177,17 @@ define(["common/BasePlayer"], function (BasePlayer) {
       this.rotationChange = -maxRot;  
     }
     
-    this.boatAngle -= this.rotationChange;
+    this.boatAngle -= this.rotationChange % (2*Math.PI);
     
     // Handle speed
     var newAccelerationForce = 0.0;
     
+    moveFactor = 0.05;
+    
     if (this.input.moveForward) {
-      newAccelerationForce += this.maxAccelerationPerSec * moveFactor;
+      newAccelerationForce += 100*this.maxAccelerationPerSec * moveFactor;
     } else if (this.input.moveBackward) {
-      newAccelerationForce -=  this.maxAccelerationPerSec * moveFactor;  
+      newAccelerationForce -=  100 * this.maxAccelerationPerSec * moveFactor;  
     }
      
     // Limit acceleration (but drive as fast forwards as possible if we
@@ -204,7 +211,7 @@ define(["common/BasePlayer"], function (BasePlayer) {
     var speedChangeVector = new THREE.Vector3().copy(this.boatForce).divideScalar(this.boatMass);
     
     if (this.isBoatOnWater && speedChangeVector.length() > 0) {
-      var speedApplyFactor = speedChangeVector.normalize().dot(this.boatDir);
+      var speedApplyFactor = speedChangeVector.clone().normalize().dot(this.boatDir);
       if (speedApplyFactor > 1) {
         speedApplyFactor = 1;
       }
@@ -234,31 +241,85 @@ define(["common/BasePlayer"], function (BasePlayer) {
 
     var oldRiverSegmentNumber = this.riverSegmentNumber;
     
-    // Where are we on the river?
-    var position = this.landscape.updateBoatRiverPosition(this.boatPos, this.riverSegmentNumber, this.riverSegmentPercent);
+  // Where are we on the river?
+  var position = this.landscape.updateBoatRiverPosition(this.boatPos, this.riverSegmentNumber, this.riverSegmentPercent);
+  
+  this.riverSegmentNumber = position.riverSegmentNumber;
+  this.riverSegmentPercent = position.riverSegmentPercent;
     
-    this.riverSegmentNumber = position.riverSegmentNumber;
-    this.riverSegmentPercent = position.riverSegmentPercent;
-      
-    var riverMatrix = this.landscape.getRiverPositionMatrix(this.riverSegmentNumber, this.riverSegmentPercent);
-    
-    var riverPos = riverMatrix.translation;
-    
-    this.setBanks(new THREE.Vector3().sub(riverPos, riverMatrix.right),
-                  new THREE.Vector3().sub(riverPos, riverMatrix.right).addSelf(riverMatrix.forward),
-                  new THREE.Vector3().add(riverPos, riverMatrix.right),
-                  new THREE.Vector3().add(riverPos, riverMatrix.right).addSelf(riverMatrix.forward));
-      
-    // Set up bank boundings for the physics calculation
-    //this.setBanks(trackPos - trackMatrix.Right *
-    
-    // Finally check for collisions with the banks
-    //this.checkForCollisions();
+  var riverMatrix = this.landscape.getRiverPositionMatrix(this.riverSegmentNumber, this.riverSegmentPercent);
+  
+  // TODO: riverPos is coming back as the righthand bank (it should be the middle of the river)
+  var riverPos = riverMatrix.translation;
+  
+  var scaledRiverRight = new THREE.Vector3().copy(riverMatrix.right);
+  // Where do we get riverWidth from (32)?
+  scaledRiverRight.multiplyScalar(8);
+
+  this.setBanks(new THREE.Vector3().sub(riverPos, scaledRiverRight),
+                new THREE.Vector3().sub(riverPos, scaledRiverRight).addSelf(riverMatrix.forward),
+                new THREE.Vector3().add(riverPos, scaledRiverRight),
+                new THREE.Vector3().add(riverPos, scaledRiverRight).addSelf(riverMatrix.forward));
+  
+  // Finally check for collisions with the banks
+  this.checkForCollisions();
+  
+  // Apply speed and calculate new boat position.
+  this.boatPos.addSelf(this.boatDir.multiplyScalar(this.speed * moveFactor * 1.75));    
       
   }
 
   BoatPhysics.prototype.checkForCollisions = function() {
-    //var bankLeftVector = new THREE.Vector3
+    
+    // Calculate normals for the bank with the help of the next bank posiion and river normal
+    
+    var bankLeftNormal = THREE.Vector3(1, 0, 0);
+    var bankRightNormal = THREE.Vector3(-1, 0, 0);
+    
+    var leftDist = distanceToLine(this.boatPos, this.bankRight, this.nextBankRight);
+    var rightDist = distanceToLine(this.boatPos, this.bankLeft, this.nextBankLeft);
+    
+    if ((leftDist < 2) || (rightDist < 2)) {
+      // Force boat back on to the river
+      // Calculate collision angle
+      var collisionAngle = Math.acos(this.boatRight, bankLeftNormal);
+      
+      this.speed *= 0.95;
+      
+      if (Math.abs(collisionAngle) < Math.PI / 4) {
+        // Play crash sound
+        
+        this.rotateBoatAfterCollision = - collisionAngle / 1.5;
+        this.speed *= 0.93;
+        // Zoom in?
+      }
+      
+      this.wobbleCamera(0.75 * this.speed);
+      
+    } else if (Math.abs(collisionAngle) < Math.PI * 3 / 4) {
+      // If 90-45 degrees it's a frontal crash
+      // Stop boat and wobble camera
+      if (Math.abs(collisionAngle) < Math.PI / 3) {
+        this.rotateBoatAfterCollision = collisionAngle / 3;
+      }
+      
+      // Play crash sound
+      
+      // Shake camera
+      this.wobbleCamera(5 * this.speed);
+      
+      // Stop the boat!
+      this.speed = 0;
+    }
+    
+    // For all collisions kill the current boat force
+    this.boatForce = new THREE.Vector3(0, 0, 0);
+    
+    if (leftDist > 0) {
+      //correctBoatPosValue = leftDist + 0.01 + 0.1;
+      //this.boatPos.addSelf(correctBoatPosValue);
+    }
+    
   }
 
   BoatPhysics.prototype.setBanks = function(bankLeft, nextBankLeft, bankRight, nextBankRight) {
@@ -266,6 +327,17 @@ define(["common/BasePlayer"], function (BasePlayer) {
     this.nextBankLeft = nextBankLeft;
     this.bankRight = bankRight;
     this.nextBankRight = nextBankRight;
+  }
+
+  function distanceToLine(p1, p2, p3) {
+    
+    var A = new THREE.Vector3().sub(p3, p2);
+    var B = new THREE.Vector3().sub(p2, p1);
+    var C = new THREE.Vector3().sub(p3, p2);
+    
+    var d = new THREE.Vector3().cross(A, B).length() / C.length();
+    
+    return d;
   }
 
   return BoatPhysics;
