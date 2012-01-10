@@ -216,8 +216,15 @@ define(['RiverLine', 'RiverData'], function (RiverLine, RiverData) {
     texture.wrapS = 0;
     texture.wrapT = 0;
     
-    material = new THREE.MeshPhongMaterial( {color: 0xffffff, color: 0x2244bb, ambient: 0x2244bb, specular: 0xffffff, perPixel: true});//, transparent: true, opacity: 0.9 } );  
-    //material = new THREE.MeshBasicMaterial( { map: texture, transparent: true, opacity: 0.7 } );  
+    var params = {
+      color: 0x1144bb,
+      ambient: 0x2244bb,
+      specular: 0xaaddff,
+      opacity: 0.8,
+      perPixel: true
+    };
+    
+    material = new THREE.MeshPhongMaterial(params);  
     
     mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(0, -0.25, 0);

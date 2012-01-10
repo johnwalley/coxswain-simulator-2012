@@ -69,8 +69,15 @@ define(['River'], function (River) {
     var landscapeLeft3d = new THREE.ExtrudeGeometry( landscapeLeftShape, { amount: 10, bevelEnabled: false} );
     var landscapeRight3d = new THREE.ExtrudeGeometry( landscapeRightShape, { amount: 10, bevelEnabled: false	} );
 
-    var meshLeft = new THREE.Mesh(landscapeLeft3d, new THREE.MeshPhongMaterial({ color: 0x22aa33, ambient: 0x22aa33, specular: 0xffffff, perPixel: true }));
-    var meshRight = new THREE.Mesh(landscapeRight3d, new THREE.MeshPhongMaterial({ color: 0x22aa33, ambient: 0x22aa33, specular: 0xffffff, perPixel: true }));
+    var params = {
+      color: 0x22aa33,
+      ambient: 0x22aa33,
+      specular: 0x447755,
+      perPixel: true
+    };
+    
+    var meshLeft = new THREE.Mesh(landscapeLeft3d, new THREE.MeshPhongMaterial(params));
+    var meshRight = new THREE.Mesh(landscapeRight3d, new THREE.MeshPhongMaterial(params));
     
     meshLeft.rotation.set( Math.PI/2, 0, 0 );
     meshRight.rotation.set( Math.PI/2, 0, 0 );

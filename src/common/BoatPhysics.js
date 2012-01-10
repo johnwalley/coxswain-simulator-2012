@@ -185,7 +185,7 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
     moveFactor = 0.05;
     
     if (this.input.moveForward) {
-      newAccelerationForce += 100*this.maxAccelerationPerSec * moveFactor;
+      newAccelerationForce += 100 * this.maxAccelerationPerSec * moveFactor;
     } else if (this.input.moveBackward) {
       newAccelerationForce -=  100 * this.maxAccelerationPerSec * moveFactor;  
     }
@@ -236,36 +236,36 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
       this.speed = -this.maxSpeed*0.1;  
     }
       
-    // Apply speed and calculate new boat position.
-    this.boatPos.addSelf(this.boatDir.multiplyScalar(this.speed * moveFactor * 1.75));  
-
     var oldRiverSegmentNumber = this.riverSegmentNumber;
     
-  // Where are we on the river?
-  var position = this.landscape.updateBoatRiverPosition(this.boatPos, this.riverSegmentNumber, this.riverSegmentPercent);
-  
-  this.riverSegmentNumber = position.riverSegmentNumber;
-  this.riverSegmentPercent = position.riverSegmentPercent;
+    // Where are we on the river?
+    var position = this.landscape.updateBoatRiverPosition(this.boatPos, this.riverSegmentNumber, this.riverSegmentPercent);
     
-  var riverMatrix = this.landscape.getRiverPositionMatrix(this.riverSegmentNumber, this.riverSegmentPercent);
-  
-  // TODO: riverPos is coming back as the righthand bank (it should be the middle of the river)
-  var riverPos = riverMatrix.translation;
-  
-  var scaledRiverRight = new THREE.Vector3().copy(riverMatrix.right);
-  // Where do we get riverWidth from (32)?
-  scaledRiverRight.multiplyScalar(8);
+    this.riverSegmentNumber = position.riverSegmentNumber;
+    this.riverSegmentPercent = position.riverSegmentPercent;
+      
+    var riverMatrix = this.landscape.getRiverPositionMatrix(this.riverSegmentNumber, this.riverSegmentPercent);
+    
+    // TODO: riverPos is coming back as the righthand bank (it should be the middle of the river)
+    var riverPos = riverMatrix.translation;
+    
+    var scaledRiverRight = new THREE.Vector3().copy(riverMatrix.right);
+    
+    // TODO: Magic number
+    // Where do we get riverWidth from (32)?
+    scaledRiverRight.multiplyScalar(8);
 
-  this.setBanks(new THREE.Vector3().sub(riverPos, scaledRiverRight),
-                new THREE.Vector3().sub(riverPos, scaledRiverRight).addSelf(riverMatrix.forward),
-                new THREE.Vector3().add(riverPos, scaledRiverRight),
-                new THREE.Vector3().add(riverPos, scaledRiverRight).addSelf(riverMatrix.forward));
-  
-  // Finally check for collisions with the banks
-  this.checkForCollisions();
-  
-  // Apply speed and calculate new boat position.
-  this.boatPos.addSelf(this.boatDir.multiplyScalar(this.speed * moveFactor * 1.75));    
+    this.setBanks(new THREE.Vector3().sub(riverPos, scaledRiverRight),
+                  new THREE.Vector3().sub(riverPos, scaledRiverRight).addSelf(riverMatrix.forward),
+                  new THREE.Vector3().add(riverPos, scaledRiverRight),
+                  new THREE.Vector3().add(riverPos, scaledRiverRight).addSelf(riverMatrix.forward));
+    
+    // Finally check for collisions with the banks
+    this.checkForCollisions();
+    
+    // Apply speed and calculate new boat position.
+    // TODO: Magic number
+    this.boatPos.addSelf(this.boatDir.multiplyScalar(this.speed * moveFactor * 4.75));    
       
   }
 
@@ -284,12 +284,15 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
       // Calculate collision angle
       var collisionAngle = Math.acos(this.boatRight, bankLeftNormal);
       
-      this.speed *= 0.95;
+      this.speed *= -0.95;
       
       if (Math.abs(collisionAngle) < Math.PI / 4) {
         // Play crash sound
         
         this.rotateBoatAfterCollision = - collisionAngle / 1.5;
+        
+        // This is a huuuuge hack but it gets us something playable
+        // TODO: Implement physics!
         this.speed *= 0.93;
         // Zoom in?
       }
