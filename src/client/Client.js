@@ -2,143 +2,200 @@
  * @author John Walley / http://www.walley.org.uk/
  */
 
-/**
- * Main entry class for our game
- * @constructor
- */
-function Client() {
+define(['common/Player', 'client/Input', 'Landscape'], function (Player, Input, Landscape) {
+  /** 
+    A module representing the client
+    @exports Client
+    @version 1.0
+   */
+ 
+  /**
+   * Main entry class for our game
+   * @constructor
+   */
+  function Client() {
 
-  // Client only properties, rendering, input, sound, etc.
-  this.input = new Input();
-  this.camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.5, 8000 );
-  this.stats = new Stats();
-  
-  // Set up renderer
-  this.renderer = new THREE.WebGLRenderer( { antialias: true } );
-  
-  this.level = 'cam';
+    // Client only properties, rendering, input, sound, etc.
+    this.input = new Input();
+    this.camera = new THREE.PerspectiveCamera( 90, window.innerWidth / window.innerHeight, 0.5, 8000 );
+    this.stats = new Stats();
+    
+    // Set up renderer
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    
+    this.level = 'cam';
 
-  // Common properties, i.e. physics engine
-  this.player = new Player(this.input); // TODO: Decouple input from physics - make event driven?
-  this.landscape = new Landscape(this.level);
+    // Common properties, i.e. physics engine
+    this.landscape = new Landscape(this.level);
+    
+    
+    this.player = new Player(this.input, this.landscape); // TODO: Decouple input from physics - make event driven?
+    
+    this.mode = Client.MULTIPLAYER;
+    this.opponent = new Player();
+    this.opponent.boatPos = this.player.boatPos.clone();
+    
+    // Test connection to server
+    this.socket = io.connect('http://localhost:27960');
+    
+    this.socket.on('motd', function (data) {
+      console.log(data.motd);
+    });
 
-  hostname = {localhost: 'localhost', ec2: 'ec2.walley.org.uk'};
-  port = 27960;
+    // Experimental multiplayer support (client acts as spectator)
+    this.socket.on('state', (function(data) {
+      this.opponent.boatPos.set(data.x, data.y, data.z);
+    }).bind(this));  
+    
+    this.socket.emit('join', { name: 'marv' });
+  }
   
-  // Test connection to server
-  this.socket = io.connect(hostname[0] + ':' + port);
-  
-  this.socket.on('motd', function (data) {
-    console.log(data.motd);
-  });
+  Client.prototype = {
+    SINGLEPLAYER: 1,
+    MULTIPLAYER: 2
+  }
 
-  // Experimental multiplayer support (client acts as spectator)
-  this.socket.on('state', (function(data) {
-    this.player.boatPos.set(data.x, data.y, data.z);
-  }).bind(this));  
-  
-  this.socket.emit('join', { name: 'marv' });
-}
+  Client.prototype.run = function () {
+    this.init();
+    // Game loop
+    this.step();
+  }
 
+  Client.prototype.step = function () {
+    this.update();
+    this.draw();
+    requestAnimationFrame(this.step.bind(this));
+  }
 
-Client.prototype.run = function () {
-  this.init();
-  // Game loop
-  this.step();
-}
+  Client.prototype.update = function () {
+    // this.input.update();
+    // this.sound.update();
+    this.player.update(this.clock.getDelta());
+    
+    // Are we racing against someone?
+    if (this.mode == Client.MULTIPLAYER) {
+      // Send our position to the server
+      this.socket.emit('state', {x:this.player.boatPos.x, y:this.player.boatPos.y, z:this.player.boatPos.z});      
+    }
+    
+    this.camera.position = this.player.cameraPos;
+    this.camera.lookAt(this.player.boatPos);
+    
+    //this.pointLight.position = this.player.boatPos;
+    //this.lightMesh.position = this.player.boatPos;
+    
+    this.skyBox.target.x = -Math.cos(this.camera.rotation.y);
+    this.skyBox.target.y = 0;
+    this.skyBox.target.z = -Math.sin(this.camera.rotation.y);
+    
+    this.stats.update();
+  }
 
-Client.prototype.step = function () {
-  this.update();
-  this.draw();
-  this.socket.emit('state', {x:this.player.boatPos.x, y:this.player.boatPos.y, z:this.player.boatPos.z});  
-  requestAnimationFrame(this.step.bind(this));
-}
+  /**
+   * Draw
+   * @param gameTime Game time
+   */
+  Client.prototype.draw = function (gameTime) {
+    this.render();
+    // this.uiRenderer.render();
+  }
 
-Client.prototype.update = function () {
-  // this.input.update();
-  // this.sound.update();
-  this.player.update(this.clock.getDelta());
-  
-  this.camera.position = this.player.cameraPos;
-  this.camera.lookAt(this.player.lookAtPos);
+  Client.prototype.render = function () {
+    this.skyBox.camera.lookAt(this.skyBox.target);  
+    this.renderer.render(this.skyBox.scene, this.skyBox.camera);  
+    this.renderer.render(this.scene, this.camera);
+  }
 
-  this.skyBox.target.x = -Math.cos(this.player.boatAngle);
-  this.skyBox.target.y = 0;
-  this.skyBox.target.z = -Math.sin(this.player.boatAngle);
-  
-  this.stats.update();
-}
+  /**
+   * Initialisation function
+   * Does a lot of heavy lifting currently
+   */
+  Client.prototype.init = function () {
 
-/**
- * Draw
- * @param gameTime Game time
- */
-Client.prototype.draw = function (gameTime) {
-  this.render();
-  // this.uiRenderer.render();
-}
+    // Initialise renderer
+    this.renderer.setSize( window.innerWidth, window.innerHeight );
+    this.renderer.autoClear = false;
+    this.renderer.shadowMapEnabled = true;
+    
+    // Draw to specified dom element
+    container = document.getElementById( 'container' );
+    container.appendChild( this.renderer.domElement );
 
-Client.prototype.render = function () {
-  this.skyBox.camera.lookAt(this.skyBox.target);  
-	this.renderer.render(this.skyBox.scene, this.skyBox.camera);  
-  this.renderer.render(this.scene, this.camera);
-}
+    // Main scene. Holds river, landscape and player model
+    scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x000000, 0.01);
 
-/**
- * Initialisation function
- * Does a lot of heavy lifting currently
- */
-Client.prototype.init = function () {
+    // TODO: Transition to z axis being up
+    //camera.up = THREE.Vector3(0, 1, 0);
+    //this.camera.position.set(72, 8, 105);
+     
+    scene.add(this.camera);
+    
+    // Add ambient light
+    var ambientLight = new THREE.AmbientLight(0xaabbcc);
+    scene.add(ambientLight);
 
-  // Initialise renderer
-  this.renderer.setSize( window.innerWidth, window.innerHeight );
-  this.renderer.autoClear = false;
-  
-  // Draw to specified dom element
-  container = document.getElementById( 'container' );
-  container.appendChild( this.renderer.domElement );
+    var directionalLight = new THREE.DirectionalLight(0x666666);
+    directionalLight.position = BaseGame.lightDirection.normalize();
+    directionalLight.castShadow = true;
+    scene.add(directionalLight);     
+                          
+    /* In general objects know how to construct their own meshes.
+       However they do not have responsibility for rendering themselves. I wish
+       to decouple the renderer as much as possible from the physics engine */
+                          
+    // Generate landscape and add to scene
+    leftBankMesh = this.landscape.generateMesh()[0];
+    //leftBankMesh.castShadow = true;
+    rightBankMesh = this.landscape.generateMesh()[1];
+    //rightBankMesh.castShadow = true;    
+    scene.add(leftBankMesh);
+    scene.add(rightBankMesh);
+    
+    // Generate river and add to scene
+    riverMesh = this.landscape.river.generateMesh();
+    //riverMesh.receiveShadow = true;
+    scene.add(riverMesh);
+    
+    // Generate boat model and add to scene
+    pointLight = new THREE.PointLight(0xff1111, 1, 100);
+    pointLight.position = this.player.boatPos;
+    scene.add(pointLight);
+    
+    sphere = new THREE.SphereGeometry(8, 16, 8, 1);
+    lightMesh = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({color: 0xff1111}));
+    lightMesh.scale.set(0.05, 0.05, 0.05);
+    lightMesh.position = pointLight.position;
+    scene.add(lightMesh);
 
-  // Main scene. Holds river, landscape and player model
-  scene = new THREE.Scene();
-  scene.fog = new THREE.Fog( 0x58c2c0, 1, 800 );
-
-  // TODO: Transition to z axis being up
-  //camera.up = THREE.Vector3(0, 1, 0);
-  this.camera.position.set(72, 8, 105);
-   
-  scene.add(this.camera);
+    pointLight = new THREE.PointLight(0x0000ff, 1, 100);
+    pointLight.position = this.opponent.boatPos;
+    scene.add(pointLight);
+    
+    sphere = new THREE.SphereGeometry(8, 16, 8, 1);
+    lightMesh = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({color: 0x0000ff}));
+    lightMesh.scale.set(0.05, 0.05, 0.05);
+    lightMesh.position = pointLight.position;
+    scene.add(lightMesh);
+    
+    scene.add(this.camera);
+    
+    var skyBox = new SkyBox();
+    
+    skyBox.scene.add(skyBox.generateMesh('night/fade/'));
+    
+    this.scene = scene;  
+    this.skyBox = skyBox;
+    
+    this.pointLight = pointLight;
+    this.lightMesh = lightMesh;
+    
+    this.stats.domElement.style.position = 'absolute';
+    this.stats.domElement.style.top = '0px';
+    container.appendChild( this.stats.domElement );
+    
+    this.clock = new THREE.Clock();
+  }
   
-  // Add ambient light
-  var ambientLight = new THREE.AmbientLight(0xffffff);
-  scene.add(ambientLight);
-
-  var directionalLight = new THREE.DirectionalLight(0xffff44);
-  directionalLight.position = BaseGame.lightDirection.normalize();
-  scene.add(directionalLight);     
-                        
-  /* In general objects know how to construct their own meshes.
-     However they do not have responsibility for rendering themselves. I wish
-     to decouple the renderer as much as possible from the physics engine */
-                        
-  // Generate landscape and add to scene
-  scene.add(this.landscape.generateMesh()[0]);
-  scene.add(this.landscape.generateMesh()[1]);
-  
-  // Generate river and add to scene
-  scene.add(this.landscape.river.generateMesh());
-  
-  scene.add(this.camera);
-  
-  var skyBox = new SkyBox();
-  
-  skyBox.scene.add(skyBox.generateMesh());
-  
-  this.scene = scene;  
-  this.skyBox = skyBox;
-  
-  this.stats.domElement.style.position = 'absolute';
-  this.stats.domElement.style.top = '0px';
-  container.appendChild( this.stats.domElement );
-  
-  this.clock = new THREE.Clock();
-}
+  return Client;
+});
