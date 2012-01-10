@@ -789,11 +789,11 @@ define('common/BoatPhysics',["common/BasePlayer", "../../lib/Three.js"], functio
     // Controls
     this.input = input;
     
-    this.boatMass = 1000;
+    this.boatMass = 1;
     this.gravity = 9.81;
     
-    this.defaultMaxSpeed = 1000 * this.mphToMeterPerSec;
-    this.maxPossibleSpeed = 1000 * this.mphToMeterPerSec;
+    this.defaultMaxSpeed = 30 * this.mphToMeterPerSec;
+    this.maxPossibleSpeed = 30 * this.mphToMeterPerSec;
     
     this.defaultMaxAccelerationPerSec = 0.2;
     this.maxAcceleration = 5.75;
@@ -835,7 +835,7 @@ define('common/BoatPhysics',["common/BasePlayer", "../../lib/Three.js"], functio
     this.lastAccelerationResult = 0;
     
     //this.boatPos = boatPosition;
-    this.boatPos = new THREE.Vector3(75, 0, 125);
+    this.boatPos = new THREE.Vector3(75, 1, 125);
     this.boatAngle = 0.95;
     this.boatUp = new THREE.Vector3(0, 1, 0);
     
@@ -902,7 +902,8 @@ define('common/BoatPhysics',["common/BasePlayer", "../../lib/Three.js"], functio
       this.rotationChange = 0;
     }
     
-    this.rotationChange -= this.input.mouseX * moveFactor / 5.5;
+    // TODO: If we're going mouse only for steering then this needs to be improved and the magic number factored out into the sensitivity var
+    this.rotationChange -= this.input.mouseX * moveFactor / 2000;
     
     var maxRot = this.maxRotationPerSec * moveFactor * 1.25;
     
@@ -928,10 +929,11 @@ define('common/BoatPhysics',["common/BasePlayer", "../../lib/Three.js"], functio
     else
     {
       // If we are staying or moving very slowly, limit rotation!
-      if (Math.abs(this.speed) < 5.0) {
+      var speedThreshold = 5;
+      if (Math.abs(this.speed) < speedThreshold) {
         this.rotationChange *= 2 + 0.33 * this.speed / 10.0;
       } else {
-        this.rotationChange *= 1.0 + (this.speed - 5) / 10.0;
+        this.rotationChange *= 2.0 + (this.speed - speedThreshold) / 10.0;
       }
     }    
     
@@ -943,15 +945,17 @@ define('common/BoatPhysics',["common/BasePlayer", "../../lib/Three.js"], functio
       this.rotationChange = -maxRot;  
     }
     
-    this.boatAngle -= this.rotationChange;
+    this.boatAngle -= this.rotationChange % (2*Math.PI);
     
     // Handle speed
     var newAccelerationForce = 0.0;
     
+    moveFactor = 0.05;
+    
     if (this.input.moveForward) {
-      newAccelerationForce += this.maxAccelerationPerSec * moveFactor;
+      newAccelerationForce += 100*this.maxAccelerationPerSec * moveFactor;
     } else if (this.input.moveBackward) {
-      newAccelerationForce -=  this.maxAccelerationPerSec * moveFactor;  
+      newAccelerationForce -=  100 * this.maxAccelerationPerSec * moveFactor;  
     }
      
     // Limit acceleration (but drive as fast forwards as possible if we
@@ -975,7 +979,7 @@ define('common/BoatPhysics',["common/BasePlayer", "../../lib/Three.js"], functio
     var speedChangeVector = new THREE.Vector3().copy(this.boatForce).divideScalar(this.boatMass);
     
     if (this.isBoatOnWater && speedChangeVector.length() > 0) {
-      var speedApplyFactor = speedChangeVector.normalize().dot(this.boatDir);
+      var speedApplyFactor = speedChangeVector.clone().normalize().dot(this.boatDir);
       if (speedApplyFactor > 1) {
         speedApplyFactor = 1;
       }
@@ -1043,10 +1047,12 @@ define('common/BoatPhysics',["common/BasePlayer", "../../lib/Three.js"], functio
     var leftDist = distanceToLine(this.boatPos, this.bankRight, this.nextBankRight);
     var rightDist = distanceToLine(this.boatPos, this.bankLeft, this.nextBankLeft);
     
-    if ((leftDist < 1) || (rightDist < 1)) {
+    if ((leftDist < 2) || (rightDist < 2)) {
       // Force boat back on to the river
       // Calculate collision angle
       var collisionAngle = Math.acos(this.boatRight, bankLeftNormal);
+      
+      this.speed *= 0.95;
       
       if (Math.abs(collisionAngle) < Math.PI / 4) {
         // Play crash sound
@@ -1125,8 +1131,11 @@ define('common/ChaseCamera',["common/BoatPhysics"], function (BoatPhysics) {
     
     this.cameraPos;
     
-    this.cameraDistance = 10;
-    this.cameraLookVector;
+    this.cameraDistance = 5;
+    this.wannaCameraDistance = 5;
+    
+    this.cameraLookVector = new THREE.Vector3(1, 0, 0);
+    this.wannaCameraLookVector;
     
     this.maxCameraWobbleTimeout = 0.7;
     this.cameraWobbleTimeout = 0;
@@ -1134,7 +1143,7 @@ define('common/ChaseCamera',["common/BoatPhysics"], function (BoatPhysics) {
     
     this.lastCameraWobble = new THREE.Vector3(0, 0, 0);
       
-    this.setCameraPosition(new THREE.Vector3().add(new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 10, 10)));
+    this.setCameraPosition(new THREE.Vector3().add(this.boatPos, new THREE.Vector3(0, -100, 10)));
   }
 
   // Inherit BoatPhysics
@@ -1146,7 +1155,7 @@ define('common/ChaseCamera',["common/BoatPhysics"], function (BoatPhysics) {
   ChaseCamera.prototype.update = function (delta) {
     BoatPhysics.prototype.update.call(this, delta);
 
-    this.updateView();
+    this.updateView(delta);
   }
 
   ChaseCamera.prototype.setCameraPosition = function (cameraPos) {
@@ -1154,19 +1163,25 @@ define('common/ChaseCamera',["common/BoatPhysics"], function (BoatPhysics) {
     this.cameraLookVector = new THREE.Vector3().sub(this.lookAtPos, this.cameraPos);
   }
 
-  ChaseCamera.prototype.updateView = function () {
+  ChaseCamera.prototype.updateView = function (delta) {
     // This function is an abomination of misunderstanding and hacks. Do better!
 
-    this.cameraLookVector = this.boatDir.clone();
+    this.cameraDistance = (0.9 * this.cameraDistance) +
+                          (0.1 * this.wannaCameraDistance);
     
-    this.cameraLookVector.multiplyScalar(-this.cameraDistance);
-
-    this.cameraPos = new THREE.Vector3().add(this.lookAtPos, this.cameraLookVector).addSelf(this.boatUp).addSelf(this.boatUp).addSelf(this.boatUp);
+    //this.cameraLookVector = this.boatDir.clone();    
+    this.wannaCameraLookVector = this.boatDir.clone().multiplyScalar(-this.cameraDistance);;
+                     
+    this.cameraLookVector = new THREE.Vector3().add(
+                              this.cameraLookVector.clone().multiplyScalar(0.9),
+                              this.wannaCameraLookVector.clone().multiplyScalar(0.1));
+    
+    this.cameraPos = new THREE.Vector3().add(this.lookAtPos, this.cameraLookVector).addSelf(this.boatUp).addSelf(this.boatUp);
   
     // Is the camera wobbling?
     if (this.cameraWobbleTimeout > 0) {
       // This should pick up on the frametime
-      this.cameraWobbleTimeout -= 1/60;
+      this.cameraWobbleTimeout -= delta;
       if (this.cameraWobbleTimeout < 0) {
         this.cameraWobbleTimeout = 0;
       }
@@ -1176,9 +1191,11 @@ define('common/ChaseCamera',["common/BoatPhysics"], function (BoatPhysics) {
     // and if in game (check if we're zooming in at start)
     if (this.cameraWobbleTimeout > 0) {
       var effectStrength = 0.1 * this.cameraWobbleFactor * (this.cameraWobbleTimeout / this.maxCameraWobbleTimeout);
-      this.lastCameraWobble.multiplyScalar(0.8).addSelf(new THREE.Vector3(Math.random(), 0, Math.random()).normalize().multiplyScalar(effectStrength));
+      this.lastCameraWobble = (new THREE.Vector3(Math.random()-0.5, 0, Math.random()-0.5).normalize().multiplyScalar(effectStrength));
     }
-    
+    else {
+      this.lastCameraWobble.set(0, 0, 0);
+    }    
     
   }
   
@@ -1220,7 +1237,166 @@ define('common/Player',["common/ChaseCamera"], function (ChaseCamera) {
   
   return Player;
 });
-define('client/Input',[],function(){function a(a){this.domElement=a!==undefined?a:document,this.mouseX=0,this.mouseY=0,this.moveForward=!1,this.moveBackward=!1,this.moveLeft=!1,this.moveRight=!1,this.domElement===document?(this.viewHalfX=window.innerWidth/2,this.viewHalfY=window.innerHeight/2):(this.viewHalfX=this.domElement.offsetWidth/2,this.viewHalfY=this.domElement.offsetHeight/2,this.domElement.setAttribute("tabindex",-1)),this.onMouseMove=function(a){this.domElement===document?(this.mouseX=(a.pageX-this.viewHalfX)/this.viewHalfX,this.mouseY=a.pageY-this.viewHalfY):(this.mouseX=a.pageX-this.domElement.offsetLeft-this.viewHalfX,this.mouseY=a.pageY-this.domElement.offsetTop-this.viewHalfY)},this.onKeyDown=function(a){switch(a.keyCode){case 38:case 87:this.moveForward=!0;break;case 37:case 65:this.moveLeft=!0;break;case 40:case 83:this.moveBackward=!0;break;case 39:case 68:this.moveRight=!0}},this.onKeyUp=function(a){switch(a.keyCode){case 38:case 87:this.moveForward=!1;break;case 37:case 65:this.moveLeft=!1;break;case 40:case 83:this.moveBackward=!1;break;case 39:case 68:this.moveRight=!1}},this.domElement.addEventListener("mousemove",this.onMouseMove.bind(this),!1),this.domElement.addEventListener("keydown",this.onKeyDown.bind(this),!1),this.domElement.addEventListener("keyup",this.onKeyUp.bind(this),!1)}return a});
+/**
+ * @author John Walley / http://www.walley.org.uk/
+ */
+ 
+define('client/Input',[],function () { 
+  /**
+   * Input
+   * @constructor
+   */
+  function Input(domElement) {
+
+    this.domElement = ( domElement !== undefined ) ? domElement : document;
+
+    this.mouseX = 0;
+    this.mouseY = 0;  
+    
+    this.moveForward = false;
+    this.moveBackward = false;
+    this.moveLeft = false;
+    this.moveRight = false;  
+    
+    if (this.domElement === document) {
+      this.viewHalfX = window.innerWidth / 2;
+      this.viewHalfY = window.innerHeight / 2;
+    } else {
+      this.viewHalfX = this.domElement.width / 2;
+      this.viewHalfY = this.domElement.height / 2;
+      this.domElement.setAttribute( 'tabindex', -1 );
+    }  
+
+    this.onMouseMove = function ( event ) {
+
+      if ( this.domElement === document ) {
+
+        this.mouseX = (event.pageX - this.viewHalfX)/this.viewHalfX;
+        this.mouseY = event.pageY - this.viewHalfY;
+
+      } else {
+
+        this.mouseX = event.pageX - this.domElement.offsetLeft - this.viewHalfX;
+        this.mouseY = event.pageY - this.domElement.offsetTop - this.viewHalfY;
+
+      }
+
+    };
+    
+    this.onMouseDown = function ( event ) {
+      if ( this.domElement !== document ) {
+
+        this.domElement.focus();
+
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      switch ( event.button ) {
+
+        case 0: this.moveForward = true; break;
+        case 2: this.moveBackward = true; break;
+
+      }
+      this.mouseDragOn = true;
+    };
+
+    this.onMouseUp = function ( event ) {
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      switch ( event.button ) {
+
+        case 0: this.moveForward = false; break;
+        case 2: this.moveBackward = false; break;
+
+      }
+
+      this.mouseDragOn = false;
+
+    };
+    
+    this.onKeyDown = function (event) {
+      switch(event.keyCode) {   
+        case 38: /*up*/
+        case 87: /*W*/ this.moveForward = true; break;
+
+        case 37: /*left*/
+        case 65: /*A*/ this.moveLeft = true; break;
+
+        case 40: /*down*/
+        case 83: /*S*/ this.moveBackward = true; break;
+
+        case 39: /*right*/
+        case 68: /*D*/ this.moveRight = true; break;
+      }
+    };
+    
+    this.onKeyUp = function (event) {
+      switch(event.keyCode) {
+        case 38: /*up*/
+        case 87: /*W*/ this.moveForward = false; break;
+
+        case 37: /*left*/
+        case 65: /*A*/ this.moveLeft = false; break;
+
+        case 40: /*down*/
+        case 83: /*S*/ this.moveBackward = false; break;
+
+        case 39: /*right*/
+        case 68: /*D*/ this.moveRight = false; break;
+      }
+    };  
+    
+    // Wire up listeners
+    this.domElement.addEventListener('mousemove', this.onMouseMove.bind(this), false );
+    this.domElement.addEventListener('mousedown', this.onMouseDown.bind(this), false );    
+    this.domElement.addEventListener('mouseup', this.onMouseUp.bind(this), false );        
+    this.domElement.addEventListener('keydown', this.onKeyDown.bind(this), false);
+    this.domElement.addEventListener('keyup', this.onKeyUp.bind(this), false);
+  }
+
+  return Input;
+});
+/**
+ * @author John Walley / http://www.walley.org.uk/
+ */
+ 
+define('client/SoundManager',[],function () { 
+
+  var BLOOPS = ['../assets/sounds/bloop1.wav', '../../assets/sounds/bloop2.wav',
+      '../../assets/sounds/bloop3.wav', '../../assets/sounds/bloop4.wav', '../../assets/sounds/bloop5.wav'];
+
+  function SoundManager() {
+    this.audio = document.createElement('audio');
+    this.soundtrack = document.createElement('audio');
+    this.soundtrack.setAttribute('loop', true);
+    this.soundtrack.src = '../assets/sounds/soundtrack.mp3';
+    this.soundtrack.volume = 0.5;
+  }
+
+  SoundManager.prototype.playBloop = function() {
+    var url = BLOOPS[0];
+    this.audio.src = url;
+    this.audio.play();
+  };
+
+  SoundManager.prototype.playJoin = function() {
+  };
+
+  SoundManager.prototype.toggleSoundtrack = function() {
+    if (this.soundtrack.paused) {
+      this.soundtrack.play();
+    } else {
+      this.soundtrack.pause();
+    }
+  };
+
+  return SoundManager;
+
+});
 /**
  * @author John Walley / http://www.walley.org.uk/
  */
@@ -2404,11 +2580,11 @@ define('River',['RiverLine', 'RiverData'], function (RiverLine, RiverData) {
     texture.wrapS = 0;
     texture.wrapT = 0;
     
-    material = new THREE.MeshPhongMaterial( { map: texture, color: 0xffffff, color: 0x2244bb, ambient: 0x2244bb, specular: 0xffffff, perPixel: true, transparent: true, opacity: 0.7 } );  
+    material = new THREE.MeshPhongMaterial( {color: 0xffffff, color: 0x2244bb, ambient: 0x2244bb, specular: 0xffffff, perPixel: true});//, transparent: true, opacity: 0.9 } );  
     //material = new THREE.MeshBasicMaterial( { map: texture, transparent: true, opacity: 0.7 } );  
     
     mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, 0, 0);
+    mesh.position.set(0, -0.25, 0);
     
     return mesh;
   }
@@ -10360,7 +10536,8 @@ define("client/../../lib/socket.io.js", function(){});
 
 define('client/Client',[
 'common/Player', 
-'client/Input', 
+'client/Input',
+'client/SoundManager',
 'Landscape', 
 'BaseGame', 
 'client/SkyBox', 
@@ -10369,7 +10546,7 @@ define('client/Client',[
 '../../lib/Stats.js',
 '../../lib/RequestAnimationFrame.js',
 '../../lib/socket.io.js'],
-function (Player, Input, Landscape, BaseGame, SkyBox) {
+function (Player, Input, SoundManager, Landscape, BaseGame, SkyBox) {
   /** 
     A module representing the client
     @exports Client
@@ -10388,24 +10565,39 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
       boat: true
     };
   
-    // Client only properties, rendering, input, sound, etc.
-    this.input = new Input();
-    this.camera = new THREE.PerspectiveCamera( BaseGame.fieldOfView, BaseGame.width / BaseGame.height, BaseGame.nearPlane, BaseGame.farPlane );
-    
+    this.clock = new THREE.Clock();
+    this.startTime = this.clock.elapsedTime;
+    this.elapsedTime = 0;
+
     // Set up renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    var container = document.getElementById("container");
+    this.renderer.setSize(container.clientWidth, 
+                          container.clientHeight);
+  
+    // Client only properties, rendering, input, sound, etc.
+    this.input = new Input(this.renderer.domElement);
+    this.camera = new THREE.PerspectiveCamera( BaseGame.fieldOfView, BaseGame.width / BaseGame.height, BaseGame.nearPlane, BaseGame.farPlane );
     
     this.level = 'cam';
 
     // Common properties, i.e. physics engine
     this.landscape = new Landscape(this.level);
     
+    this.sound = new SoundManager();
+
+    // Game screens stack
+    this.gameScreens = [];
+    
+    //this.gameScreens.push(new MainMenu());
+    //this.gameScreens.push(new SplashScreen());
     
     this.player = new Player(this.input, this.landscape); // TODO: Decouple input from physics - make event driven?
     
-    this.mode = Client.MULTIPLAYER;
+    this.mode = Client.SINGLEPLAYER;
     this.opponent = new Player();
     this.opponent.boatPos = this.player.boatPos.clone();
+    this.opponent.boatPos.x -= 4;
     
     // Test connection to server
     this.socket = io.connect('http://localhost:27960');
@@ -10423,20 +10615,45 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
       
     // Chrome
     this.stats = new Stats();
+    
+    // Diagnostic GUI
+    // http://workshop.chromeexperiments.com/examples/gui
     this.gui = new dat.GUI();
     
-    this.gui.add(this.player, 'speed').listen();
-    this.gui.add(this.player.boatPos, 'x').listen();
-    this.gui.add(this.player.boatPos, 'z').listen();
-    this.gui.add(this.player, 'boatAngle').name('Boat Angle').listen();
-
+    this.gui.add(this, 'elapsedTime').name('Time').listen();
+    
+    var f1 = this.gui.addFolder('Boat');
+    
+    f1.add(this.player, 'speed').listen();
+    f1.add(this.player.boatPos, 'x').listen();
+    f1.add(this.player.boatPos, 'z').listen();
+    f1.add(this.player, 'boatAngle').name('Boat Angle').listen();
+    f1.open();
+    
+    var f2 = this.gui.addFolder('Camera');
+    
+    f2.add(this.player.cameraPos, 'x').listen();
+    f2.add(this.player.cameraPos, 'z').listen();
+    //f2.open();
+    
+    var f3 = this.gui.addFolder('River');
+    
+    f3.add(this.player, 'riverSegmentNumber').listen();
+    f3.open();    
+    
     this.stats.update();
   
   }
   
   Client.prototype = {
     SINGLEPLAYER: 1,
-    MULTIPLAYER: 2
+    MULTIPLAYER: 2,
+    get inMenu () {
+      return false;
+    },
+    get inGame () {
+      return true;
+    }
   }
 
   Client.prototype.run = function () {
@@ -10454,6 +10671,7 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
   Client.prototype.update = function () {
     // this.input.update();
     // this.sound.update();
+    this.elapsedTime = this.clock.elapsedTime - this.startTime;
     this.player.update(this.clock.getDelta());
     
     // Are we racing against someone?
@@ -10465,6 +10683,8 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     this.camera.position = this.player.cameraPos.clone();
     this.camera.lookAt(this.player.lookAtPos);
     this.camera.position.addSelf(this.player.lastCameraWobble);
+    
+    this.lightMesh.rotation.y = -this.player.boatAngle;
     
     this.skyBox.target = this.player.boatDir;
   }
@@ -10479,6 +10699,10 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
   }
 
   Client.prototype.render = function () {
+    // Handle current screen
+    //if (this.gameScreens.peek().render()) {
+    //  this.sound.play();
+    //}
     this.skyBox.camera.lookAt(this.skyBox.target);  
     this.renderer.render(this.skyBox.scene, this.skyBox.camera);  
     this.renderer.render(this.scene, this.camera);
@@ -10491,7 +10715,7 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
   Client.prototype.init = function () {
 
     // Initialise renderer
-    this.renderer.setSize( window.innerWidth, window.innerHeight );
+    //this.renderer.setSize( window.innerWidth, window.innerHeight );
     this.renderer.autoClear = false;
     this.renderer.shadowMapEnabled = true;
     
@@ -10501,7 +10725,7 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
 
     // Main scene. Holds river, landscape and player model
     scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x000000, 0.01);
+    scene.fog = new THREE.FogExp2(0x000033, 0.01);
 
     // TODO: Transition to z axis being up
     //camera.up = THREE.Vector3(0, 1, 0);
@@ -10510,7 +10734,7 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     scene.add(this.camera);
     
     // Add ambient light
-    var ambientLight = new THREE.AmbientLight(0xaabbcc);
+    var ambientLight = new THREE.AmbientLight(0x554422);
     scene.add(ambientLight);
 
     var directionalLight = new THREE.DirectionalLight(0x666666);
@@ -10542,21 +10766,21 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     pointLight.position = this.player.boatPos;
     scene.add(pointLight);
     
-    sphere = new THREE.SphereGeometry(8, 16, 8, 1);
-    lightMesh = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({color: 0xff1111}));
-    lightMesh.scale.set(0.05, 0.05, 0.05);
+    sphere = new THREE.CubeGeometry(8, 1, 1.5, 4, 1, 2);
+    lightMesh = new THREE.Mesh(sphere, new THREE.MeshPhongMaterial({color: 0xff0000}));
+    lightMesh.scale.set(0.5, 0.5, 0.5);
     lightMesh.position = pointLight.position;
     scene.add(lightMesh);
 
-    pointLight = new THREE.PointLight(0x0000ff, 1, 100);
+    pointLight = new THREE.PointLight(0x0000aa, 1, 100);
     pointLight.position = this.opponent.boatPos;
     scene.add(pointLight);
     
-    sphere = new THREE.SphereGeometry(8, 16, 8, 1);
-    lightMesh = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({color: 0x0000ff}));
-    lightMesh.scale.set(0.05, 0.05, 0.05);
-    lightMesh.position = pointLight.position;
-    scene.add(lightMesh);
+    sphere = new THREE.CubeGeometry(8, 1, 1.5, 4, 1, 2);
+    var lightMesh2 = new THREE.Mesh(sphere, new THREE.MeshPhongMaterial({color: 0x0000ff}));
+    lightMesh2.scale.set(0.5, 0.5, 0.5);
+    lightMesh2.position = pointLight.position;
+    scene.add(lightMesh2);
     
     scene.add(this.camera);
     
@@ -10574,9 +10798,7 @@ function (Player, Input, Landscape, BaseGame, SkyBox) {
     
     this.stats.domElement.style.position = 'absolute';
     this.stats.domElement.style.top = '0px';
-    container.appendChild( this.stats.domElement );
-    
-    this.clock = new THREE.Clock();
+    //container.appendChild( this.stats.domElement );
   }
   
   return Client;
