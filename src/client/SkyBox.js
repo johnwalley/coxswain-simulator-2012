@@ -33,7 +33,7 @@ define(function () {
       path + skyBoxName.night + 'pz' + format, path + skyBoxName.night + 'nz' + format
     ];  
     
-    var texture = THREE.ImageUtils.loadTextureCube(urls, new THREE.CubeRefractionMapping());
+    this.texture = THREE.ImageUtils.loadTextureCube(urls);
 
     var shader = THREE.ShaderUtils.lib["cube"];
     shader.uniforms["tCube"].texture = texture;
@@ -45,7 +45,7 @@ define(function () {
       depthWrite: false
     } );
 
-    mesh = new THREE.Mesh(new THREE.CubeGeometry(1000, 1000, 1000), material);
+    mesh = new THREE.Mesh(new THREE.CubeGeometry(100, 100, 100), material);
     mesh.flipSided = true;  
 
     return mesh;

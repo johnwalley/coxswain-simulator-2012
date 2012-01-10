@@ -227,7 +227,7 @@ define(['RiverLine', 'RiverData'], function (RiverLine, RiverData) {
     material = new THREE.MeshPhongMaterial(params);  
     
     mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(0, -0.25, 0);
+    mesh.position.set(0, +0.25, 0);
     
     return mesh;
   }

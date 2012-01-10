@@ -261,7 +261,7 @@ define(["common/BasePlayer", "../../lib/Three.js"], function (BasePlayer) {
                   new THREE.Vector3().add(riverPos, scaledRiverRight).addSelf(riverMatrix.forward));
     
     // Finally check for collisions with the banks
-    this.checkForCollisions();
+    //this.checkForCollisions();
     
     // Apply speed and calculate new boat position.
     // TODO: Magic number
