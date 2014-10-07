@@ -1,88 +1,222 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <meta charset='utf-8'>
+  <head>
+    <meta charset="utf-8" />
+    <title>Coxswain Simulator 2012</title>
+    <style>
+      body {
+        background: #000;
+        margin: 0px;
+      }
+      #container {
+        width: 640px;
+        height: 360px;
+      }
+      #info {
+        text-align:left;
+        font: 10px/1.2 Verdana, Arial, Helvetica, Sans-Serif;
+        margin:0.5em 0em 0em 0.4em;
+        z-index:11;
+        position:absolute;
+        display:none;
+        color:#fff;
+        background: #121212;
+        opacity:0.8;
+        border-radius:20px;
+        padding: 32px
+      }
+      #infobutton {
+        text-align:left;
+        margin:0em 0 0em 0em;
+        z-index:12; 
+        position:absolute;
+        display:block; 
+        padding: 8px 
+      }
+    </style>
+  </head>
+  <body>
+	<div id="infobutton">
+		<a href="javascript:toggleInfo()"><img src="images/i.png" border="0"></a>
+	</div>
+	<div id="info">
+			<b>Rowing Racing Game - WebGL(HTML5)</b>
+			<p>Controls<br>Mouse steers left/right<br>Left mouse button accelerates</p>
+      <p>Visit <a href="https://github.com/johnwalley/coxswain-simulator-2012">GitHub</a> for source and lots more info</p>
+			<font color="#777777">(C) John Walley 2012
+	</div>
+    <div id="container">
+    </div>
+  </body>
+  <script id="fragmentShaderNormal" type="x-shader/x-fragment">
+    uniform float height;
+    uniform vec2 resolution;
+    uniform sampler2D heightMap;
 
-  <title>johnwalley/coxswain-simulator-2012 @ GitHub</title>
+    varying vec2 vUv;
 
-  <style type="text/css">
-    body {
-      margin-top: 1.0em;
-      background-color: #64502b;
-      font-family: Helvetica, Arial, FreeSans, san-serif;
-      color: #ffffff;
+    void main( void ) {
+
+      float val = texture2D( heightMap, vUv ).x;
+
+      float valU = texture2D( heightMap, vUv + vec2( 1.0 / resolution.x, 0.0 ) ).x;
+      float valV = texture2D( heightMap, vUv + vec2( 0.0, 1.0 / resolution.y ) ).x;
+
+      gl_FragColor = vec4( ( 0.5 * normalize( vec3( val - valU, val - valV, height  ) ) + 0.5 ), 1.0 );
+
     }
-    #container {
-      margin: 0 auto;
-      width: 700px;
+  </script>
+  <script id="fragmentShaderColormap" type="x-shader/x-fragment">
+    uniform sampler2D colorRamp;
+    uniform sampler2D heightMap;
+
+    varying vec2 vUv;
+
+    void main( void ) {
+
+      float v = texture2D( heightMap, vUv ).x;
+
+      vec3 color = texture2D( colorRamp, vec2( v, 0.0 ) ).xyz;
+
+      gl_FragColor = vec4( color, 1.0 );
+
     }
-    h1 { font-size: 3.8em; color: #9bafd4; margin-bottom: 3px; }
-    h1 .small { font-size: 0.4em; }
-    h1 a { text-decoration: none }
-    h2 { font-size: 1.5em; color: #9bafd4; }
-    h3 { text-align: center; color: #9bafd4; }
-    a { color: #9bafd4; }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
-    pre { background: #000; color: #fff; padding: 15px;}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
-  </style>
-</head>
+  </script>
+  <script id="fragmentShaderNoise" type="x-shader/x-fragment">
+    //
+    // Description : Array and textureless GLSL 3D simplex noise function.
+    //      Author : Ian McEwan, Ashima Arts.
+    //  Maintainer : ijm
+    //     Lastmod : 20110409 (stegu)
+    //     License : Copyright (C) 2011 Ashima Arts. All rights reserved.
+    //               Distributed under the MIT License. See LICENSE file.
+    //
 
-<body>
-  <a href="https://github.com/johnwalley/coxswain-simulator-2012"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+    uniform float time;
+    varying vec2 vUv;
 
-  <div id="container">
+    vec4 permute( vec4 x ) {
 
-    <div class="download">
-      <a href="https://github.com/johnwalley/coxswain-simulator-2012/zipball/master">
-        <img border="0" width="90" src="https://github.com/images/modules/download/zip.png"></a>
-      <a href="https://github.com/johnwalley/coxswain-simulator-2012/tarball/master">
-        <img border="0" width="90" src="https://github.com/images/modules/download/tar.png"></a>
-    </div>
+      return mod( ( ( x * 34.0 ) + 1.0 ) * x, 289.0 );
 
-    <h1><a href="https://github.com/johnwalley/coxswain-simulator-2012">Coxswain Simulator 2012</a>
-      <span class="small">by <a href="https://github.com/johnwalley">johnwalley</a></span></h1>
+    }
 
-    <div class="description">
-      
-    </div>
+    vec4 taylorInvSqrt( vec4 r ) {
 
-    
+      return 1.79284291400159 - 0.85373472095314 * r;
 
-    
+    }
 
-    
+    float snoise( vec3 v ) {
+      const vec2 C = vec2( 1.0 / 6.0, 1.0 / 3.0 );
+      const vec4 D = vec4( 0.0, 0.5, 1.0, 2.0 );
 
-    
+      // First corner
+      vec3 i  = floor( v + dot( v, C.yyy ) );
+      vec3 x0 = v - i + dot( i, C.xxx );
 
-    
-      <h2>Authors</h2>
-      <p>John Walley (john@walley.org.uk)<br/>      </p>
-    
+      // Other corners
+      vec3 g = step( x0.yzx, x0.xyz );
+      vec3 l = 1.0 - g;
+      vec3 i1 = min( g.xyz, l.zxy );
+      vec3 i2 = max( g.xyz, l.zxy );
 
-    
-      <h2>Contact</h2>
-      <p>John Walley (github@walley.org.uk)<br/>      </p>
-    
+      vec3 x1 = x0 - i1 + 1.0 * C.xxx;
+      vec3 x2 = x0 - i2 + 2.0 * C.xxx;
+      vec3 x3 = x0 - 1. + 3.0 * C.xxx;
 
-    <h2>Download</h2>
-    <p>
-      You can download this project in either
-      <a href="https://github.com/johnwalley/coxswain-simulator-2012/zipball/master">zip</a> or
-      <a href="https://github.com/johnwalley/coxswain-simulator-2012/tarball/master">tar formats.
-    </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/johnwalley/coxswain-simulator-2012</pre>
-    </p>
+      // Permutations
+      i = mod( i, 289.0 );
+      vec4 p = permute( permute( permute(
+           i.z + vec4( 0.0, i1.z, i2.z, 1.0 ) )
+           + i.y + vec4( 0.0, i1.y, i2.y, 1.0 ) )
+           + i.x + vec4( 0.0, i1.x, i2.x, 1.0 ) );
 
-    <div class="footer">
-      get the source code on GitHub : <a href="https://github.com/johnwalley/coxswain-simulator-2012">johnwalley/coxswain-simulator-2012</a>
-    </div>
+      // Gradients
+      // ( N*N points uniformly over a square, mapped onto an octahedron.)
+      float n_ = 1.0 / 7.0; // N=7
 
-  </div>
+      vec3 ns = n_ * D.wyz - D.xzx;
 
-</body>
+      vec4 j = p - 49.0 * floor( p * ns.z *ns.z );  //  mod(p,N*N)
+
+      vec4 x_ = floor( j * ns.z );
+      vec4 y_ = floor( j - 7.0 * x_ );    // mod(j,N)
+
+      vec4 x = x_ *ns.x + ns.yyyy;
+      vec4 y = y_ *ns.x + ns.yyyy;
+      vec4 h = 1.0 - abs( x ) - abs( y );
+
+      vec4 b0 = vec4( x.xy, y.xy );
+      vec4 b1 = vec4( x.zw, y.zw );
+
+
+      vec4 s0 = floor( b0 ) * 2.0 + 1.0;
+      vec4 s1 = floor( b1 ) * 2.0 + 1.0;
+      vec4 sh = -step( h, vec4( 0.0 ) );
+
+      vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+      vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+
+      vec3 p0 = vec3( a0.xy, h.x );
+      vec3 p1 = vec3( a0.zw, h.y );
+      vec3 p2 = vec3( a1.xy, h.z );
+      vec3 p3 = vec3( a1.zw, h.w );
+
+      // Normalise gradients
+      vec4 norm = taylorInvSqrt( vec4( dot( p0, p0 ), dot( p1, p1 ), dot( p2, p2 ), dot( p3, p3 ) ) );
+      p0 *= norm.x;
+      p1 *= norm.y;
+      p2 *= norm.z;
+      p3 *= norm.w;
+
+      // Mix final noise value
+      vec4 m = max( 0.6 - vec4( dot( x0, x0 ), dot( x1, x1 ), dot( x2, x2 ), dot( x3, x3 ) ), 0.0 );
+      m = m * m;
+      return 42.0 * dot( m*m, vec4( dot( p0, x0 ), dot( p1, x1 ),
+                      dot( p2, x2 ), dot( p3, x3 ) ) );
+
+    }
+
+    float surface( vec3 coord ) {
+      float n = 0.0;
+
+      n += 0.3    * abs( snoise( coord * 5.0 ) );
+      n += 0.0625 * abs( snoise( coord * 28.0 ) );
+
+      return n;
+    }
+
+    void main( void ) {
+      vec3 coord = vec3( vUv, -time );
+
+      float n = surface( coord );
+
+      gl_FragColor = vec4( vec3( n, n, n ), 1.0 );
+    }
+  </script>
+  <script id="vertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+    uniform vec2 scale;
+
+    void main( void ) {
+
+      vUv = uv * scale;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+    }
+  </script>
+  <script id="vertexShaderFlip" type="x-shader/x-vertex">
+    varying vec2 vUv;
+    uniform vec2 scale;
+
+    void main( void ) {
+
+      vUv = vec2( uv.x, 1.0 - uv.y ) * scale;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+    }
+  </script>
+  <script src="js/info.js"></script>
+  <script data-main="js/client" src="js/require.js"></script>
 </html>
