@@ -8,7 +8,7 @@ Multiplayer internet racing game.
 * Cross-browser 3D graphics using WebGL
 * Node.js server hosted on an Amazon Elastic Cloud Compute instance (this is very experimental at the moment and is turned off)
 
-Play it at <a href="http://www.walley.org.uk/coxswain-simulator-2012/">http://www.walley.org.uk/cox-sim-2012/</a>.
+Play it at <a href="http://www.walley.org.uk/coxswain-simulator-2012/">http://www.walley.org.uk/coxswain-simulator-2012/</a>.
 
 You will need a recent web browser with support for WebGL. Chrome, Firefox and Safari latest builds should be sufficient.
 
